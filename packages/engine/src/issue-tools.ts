@@ -6,7 +6,7 @@ import { type ArtifactDeps, fileRefOf, shareArtifact } from "./artifacts";
 import { canTalkTo, speakerFor } from "./audience";
 import { UUID } from "./authority";
 import { callableAgents, notCallableText } from "./brakes";
-import { projectByName } from "./issue-projects";
+import { projectByName, projectRepositories } from "./issue-projects";
 import {
   askAgentToImplement,
   commentIssue,
@@ -91,6 +91,20 @@ const line = (i: IssueView, names: Map<string, string>) =>
           .join(", ")})`
       : ""
   }${i.dueDate ? ` due ${i.dueDate}` : ""} id=${i.id}`;
+
+/**
+ * Under a list, once per project of its tasks that names repositories (ADR 0202 §4): where their code lives, the main
+ * one first. Empty when none does.
+ */
+async function projectReposNote(deps: IssueDeps, ctx: ToolContext, list: IssueView[]) {
+  const projects = new Map(list.flatMap((i) => (i.project ? [[i.project.id, i.project.name] as const] : [])));
+  const lines: string[] = [];
+  for (const [id, name] of projects) {
+    const [main, ...rest] = await projectRepositories(deps.db, ctx.orgId, id);
+    if (main) lines.push(`- ${name}: ${[`${main} (main)`, ...rest].join(", ")}`);
+  }
+  return lines.length ? ["Projects' GitHub repositories:", ...lines].join("\n") : "";
+}
 
 const projectField = (unset: string) => ({
   type: "string",
@@ -492,7 +506,12 @@ export function createIssueToolSource(deps: ArtifactDeps): ToolSource {
             },
           );
           const names = await assigneeNames(deps, ctx, list);
-          return { content: list.length ? list.map((i) => line(i, names)).join("\n") : "No issues." };
+          if (list.length === 0) return { content: "No issues." };
+          return {
+            content: [list.map((i) => line(i, names)).join("\n"), await projectReposNote(deps, ctx, list)]
+              .filter(Boolean)
+              .join("\n\n"),
+          };
         } catch (error) {
           return failed(error);
         }

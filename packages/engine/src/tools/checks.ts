@@ -1,7 +1,8 @@
-import { checkGithubCall } from "../git/repos";
+import { checkGithubCall, reposOfGithubCall } from "../git/repos";
 import type { CallCheck, ToolContext, ToolDefinition } from "./types";
 
-type ScopedCheck = (input: Record<string, unknown>, ctx: ToolContext) => Promise<CallCheck>;
+type CheckedTool = Pick<ToolDefinition, "scope" | "checkCall" | "defaultRepo">;
+type ScopedCheck = (input: Record<string, unknown>, ctx: ToolContext, tool: CheckedTool) => Promise<CallCheck>;
 
 /**
  * Connector-wide per-call checks, by scope prefix: every tool whose scope
@@ -10,8 +11,10 @@ type ScopedCheck = (input: Record<string, unknown>, ctx: ToolContext) => Promise
  */
 const SCOPE_CHECKS: Record<string, ScopedCheck> = {
   // GitHub: only the agent's repositories (ADR 0024), reads included.
-  "github:": async (input, ctx) => {
-    const r = await checkGithubCall(ctx.db, ctx.orgId, ctx.agentId, input);
+  "github:": async (input, ctx, tool) => {
+    // A call that names no repository but will use one of its own (ADR 0202 §4) is checked against that one.
+    const fallback = !reposOfGithubCall(input) && tool.defaultRepo ? await tool.defaultRepo(ctx) : null;
+    const r = await checkGithubCall(ctx.db, ctx.orgId, ctx.agentId, fallback ? { ...input, repo: fallback } : input);
     if (r.ok) return { ok: true, ...(r.repo ? { data: { repo: r.repo } } : {}) };
     return { ok: false, message: r.message, data: r.repo ? { deniedRepo: r.repo, refusal: "repo" } : {} };
   },
@@ -23,14 +26,14 @@ const SCOPE_CHECKS: Record<string, ScopedCheck> = {
  * `checkCall`. Data from both is merged when allowed.
  */
 export async function checkToolCall(
-  tool: Pick<ToolDefinition, "scope" | "checkCall">,
+  tool: CheckedTool,
   input: Record<string, unknown>,
   ctx: ToolContext,
 ): Promise<CallCheck> {
   let data: Record<string, unknown> | undefined;
   for (const [prefix, check] of Object.entries(SCOPE_CHECKS)) {
     if (!tool.scope.startsWith(prefix)) continue;
-    const r = await check(input, ctx);
+    const r = await check(input, ctx, tool);
     if (!r.ok) return r;
     if (r.data) data = { ...data, ...r.data };
   }

@@ -1,4 +1,5 @@
 import { and, type Executor, eq, inArray, isNull, schema } from "@agenteschat/db";
+import { projectReposLines, taskProjectRepositories } from "./issue-projects";
 
 const { issues, artifacts } = schema;
 
@@ -59,6 +60,8 @@ export async function issueWorkBrief(
     : [];
   const criteria = issue.criteria.map((c, i) => `${i + 1}. [${c.done ? "x" : " "}] ${c.text}`).join("\n");
   const prs = issue.pullRequests.map((p) => `- #${p.number} ${p.url}`).join("\n");
+  // The project's repositories (ADR 0202 §4): where the code of this task lives.
+  const repos = issue.projectId ? await taskProjectRepositories(db, orgId, issue.id).catch(() => null) : null;
   const here = options.inConversation ?? true;
   return [
     asked ? `# Your task: issue #${issue.number}` : `# This conversation: task #${issue.number}`,
@@ -68,6 +71,7 @@ export async function issueWorkBrief(
     issue.description.trim() ? `## Description\n${issue.description.trim()}` : "",
     criteria ? `## Acceptance criteria\n${criteria}` : "",
     prs ? `## Pull requests linked\n${prs}` : "",
+    repos ? projectReposLines(repos) : "",
     files.length
       ? `## Files attached to the issue\n${files.map((f) => `- ${f.title} (artifact ${f.id})`).join("\n")}\nOpen each with \`read_artifact\` before you work on it: pictures and PDFs are shown to you, documents, sheets and audio come as text.`
       : "",

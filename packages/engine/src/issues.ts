@@ -41,7 +41,7 @@ import {
   setAssignees,
 } from "./issue-assignees";
 import { boardColumns, columnForMove, columnOf, topRank } from "./issue-columns";
-import { type IssueProjectRef, projectForTask, projectsById } from "./issue-projects";
+import { type IssueProjectRef, projectForTask, projectRepositories, projectsById } from "./issue-projects";
 import type { IssueWorkMeta } from "./issue-work";
 import { fileIdsOf, getMessage, insertMessage, type MessageView, messageView, postPersonMessage } from "./messages";
 import { enqueueRunJob } from "./mission-runs";
@@ -1910,6 +1910,7 @@ export async function openTasksBrief(
       status: issues.status,
       criteria: issues.criteria,
       project: issueProjects.name,
+      projectId: issueProjects.id,
     })
     .from(issues)
     .leftJoin(issueProjects, eq(issueProjects.id, issues.projectId))
@@ -1936,6 +1937,17 @@ export async function openTasksBrief(
     .orderBy(desc(issues.updatedAt))
     .limit(OPEN_TASKS_SHOWN);
   if (rows.length === 0) return null;
+  // Each project's repositories (ADR 0202 §4), read once per project: where the code of its tasks lives.
+  const projectIds = [...new Set(rows.flatMap((r) => (r.projectId ? [r.projectId] : [])))];
+  const repos = new Map(
+    await Promise.all(projectIds.map(async (id) => [id, await projectRepositories(db, orgId, id)] as const)),
+  );
+  const repoFact = (id: string | null) => {
+    const list = id ? (repos.get(id) ?? []) : [];
+    if (list.length === 0) return [];
+    const shown = list.slice(0, 3).join(", ");
+    return [`repos ${list.length > 3 ? `${shown} +${list.length - 3}` : shown}`];
+  };
   return [
     "# Your open tasks",
     "Issues assigned to you, latest activity first:",
@@ -1944,6 +1956,7 @@ export async function openTasksBrief(
       const facts = [
         r.status,
         ...(r.project ? [`project ${r.project}`] : []),
+        ...repoFact(r.projectId),
         ...(r.criteria.length ? [`criteria ${done}/${r.criteria.length}`] : []),
       ];
       return `- #${r.number} ${r.title} (${facts.join(", ")})`;

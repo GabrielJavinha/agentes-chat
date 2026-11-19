@@ -15,6 +15,7 @@ import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
 import { getAgentCached } from "../agents";
 import { recordAudit } from "../audit";
 import { activeConnections } from "../connectors/connections";
+import { runProjectMainRepo } from "../issue-projects";
 import type { MachineCaller, MachineCallOptions, MachineStatus } from "../machine-hub";
 import { MachineOfflineError, MachinePausedError, REMOVED_COMPUTER_MESSAGE } from "../machines";
 import { missionOfRun } from "../mission-context";
@@ -316,8 +317,8 @@ export interface CodeTurn {
  * Before a chat turn of a computer brain (Claude Code, Codex) on a connected
  * machine: updates the agent's checkouts (fetch + fast-forward of the default
  * branch, bounded, never failing the turn), picks where the turn starts (the
- * repository the conversation names, else the agent's first repository, else
- * its first checkout) and writes the "# Your code" block for the system text, and where it starts ("You start in …")
+ * repository the conversation names, else its task's project's main one (ADR 0202 §4), else the agent's first
+ * repository, else its first checkout) and writes the "# Your code" block for the system text, and where it starts ("You start in …")
  * for the turn's own prompt: the system text stays the same from turn to turn. Null when there is
  * nothing to do: a mission turn (it has its own folder; only the computer's proxy credential is refreshed), an
  * older runner, no GitHub or no git access, or nothing granted or checked out.
@@ -361,10 +362,18 @@ export async function prepareAgentCode(
     }
     const credit = await creditLine(deps, turn);
     const list = await agentRepositoryList(deps.db, turn.orgId, turn.agentId);
-    const explicit = list.filter((r) => !r.endsWith("/*"));
+    // The main repository of the run's task's project (ADR 0202 §4), when the agent reaches it: kept up to date, and
+    // where the turn starts unless the conversation names another.
+    const main = turn.runId ? await runProjectMainRepo(deps.db, turn.orgId, turn.runId).catch(() => null) : null;
+    const projectMain = main && repoInList(list, ...(main.split("/") as [string, string])) ? main : null;
+    const granted = list.filter((r) => !r.endsWith("/*"));
+    const explicit =
+      projectMain && !granted.some((r) => r.toLowerCase() === projectMain.toLowerCase())
+        ? [projectMain, ...granted]
+        : granted;
     // An `owner/*` (or all) grant names no repository: its checkouts are found on the computer, so they fetch
     // straight from GitHub too instead of going back to the proxy.
-    const wildcard = list.length === 0 || list.length > explicit.length;
+    const wildcard = list.length === 0 || list.length > granted.length;
     const found =
       wildcard && deps.github && status.protocol >= GIT_STATELESS_TOKEN_PROTOCOL
         ? await checkoutsOnMachine(deps.hub, machineId, agent, options.signal)
@@ -402,7 +411,9 @@ export async function prepareAgentCode(
     if (present.length === 0 && notCloned.length === 0 && downloading.length === 0) {
       return credit ? { cwd: "", prompt: "", start: credit, pick: { present: [], credit } } : null;
     }
-    const primary = explicit.find((r) => lower.has(r.toLowerCase()));
+    const primary =
+      (projectMain && lower.has(projectMain.toLowerCase()) ? projectMain : undefined) ??
+      granted.find((r) => lower.has(r.toLowerCase()));
     const pick = {
       present: present.map((r) => ({ repo: r.repo, dir: r.dir, ...(r.path ? { path: r.path } : {}) })),
       ...(primary ? { primary } : {}),

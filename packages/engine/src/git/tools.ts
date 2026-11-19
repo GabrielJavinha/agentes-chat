@@ -3,6 +3,7 @@ import { getAgentCached } from "../agents";
 import { connectorScope } from "../connectors/catalog";
 import { activeConnections, type ConnectorDeps } from "../connectors/connections";
 import { publishChannelEvent } from "../events";
+import { runProjectMainRepo } from "../issue-projects";
 import { computerPreparing } from "../machine-provisioning";
 import { missionOfRun } from "../mission-context";
 import { isRightHand } from "../right-hand";
@@ -27,7 +28,7 @@ import type { GitHubAppConfig } from "./github-app";
 import { noTokenMessage } from "./github-call";
 import { recordGitHubItem } from "./github-events";
 import { cloneOnMachine } from "./machine";
-import { parseRepo } from "./repos";
+import { checkGithubCall, parseRepo } from "./repos";
 import { signatureLine, signedBody } from "./signature";
 
 const str = (v: unknown) => (typeof v === "string" ? v : "");
@@ -185,7 +186,7 @@ export function createGitToolSource(deps: GitToolDeps): ToolSource {
         {
           name: "git_clone",
           description:
-            "Clone a GitHub repository into your folder on your computer (repos/<owner>/<name>; already there: it is updated). No approval needed. Real git through our proxy: commit and push from there to branches agentes/<your handle>/…, then open_pull_request. Delete branches with delete_branches; to push to someone else's branch, ask with request_branch_push first.",
+            "Clone a GitHub repository into your folder on your computer (repos/<owner>/<name>; already there: it is updated). Without repo, the main repository of your task's project. No approval needed. Real git through our proxy: commit and push from there to branches agentes/<your handle>/…, then open_pull_request. Delete branches with delete_branches; to push to someone else's branch, ask with request_branch_push first.",
           scope: connectorScope("github", "git.read"),
           connectionId: connection.id,
           connector: { key: "github", via: "native", tool: "git_clone" },
@@ -194,19 +195,34 @@ export function createGitToolSource(deps: GitToolDeps): ToolSource {
           inputSchema: {
             type: "object",
             properties: {
-              repo: repoInput,
+              repo: { ...repoInput, description: "owner/name (default: your task's project's main repository)" },
               dir: {
                 type: "string",
                 maxLength: 200,
                 description: "Folder in your workspace (default: repos/<owner>/<name>)",
               },
             },
-            required: ["repo"],
             additionalProperties: false,
           },
+          // A run on a task whose project names repositories clones the main one when it names none (ADR 0202 §4).
+          defaultRepo: (c) => (c.runId ? runProjectMainRepo(c.db, c.orgId, c.runId) : Promise.resolve(null)),
           async execute(input, c) {
             try {
-              const repo = parseRepo(str(input.repo));
+              let named = str(input.repo);
+              if (!named) {
+                const main = c.runId ? await runProjectMainRepo(c.db, c.orgId, c.runId) : null;
+                if (!main) {
+                  return {
+                    content: "repo is required (owner/name): your run's task has no project with repositories.",
+                    isError: true,
+                  };
+                }
+                // Read again here: checked against the agent's repositories now, whatever the gateway saw.
+                const check = await checkGithubCall(c.db, c.orgId, c.agentId, { repo: main });
+                if (!check.ok) return { content: check.message, isError: true };
+                named = main;
+              }
+              const repo = parseRepo(named);
               if (!repo) return { content: "repo must be owner/name", isError: true };
               const given = str(input.dir).trim();
               if (given.startsWith("/") || given.split(/[\\/]/).includes("..") || /^[A-Za-z]:/.test(given))

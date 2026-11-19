@@ -1,12 +1,15 @@
 # 0202. A project's GitHub repositories
 
-- Status: Accepted (§1 to §3 built; §4 to §6 planned)
+- Status: Accepted (§1 to §4 built; §5 and §6 planned)
 - Date: 2026-11-19
 - Extends: 0171 (projects in Tarefas), 0033 and 0156 (the workspace's GitHub), the agent's repositories
   (`agent_repositories`)
 - Code: `packages/engine/src/issue-projects.ts` (`setProjectRepositories`, `projectRepositories`,
-  `cleanProjectRepositories`, `PROJECT_REPOSITORIES_MAX`); route `PUT …/issue-projects/{projectId}/repositories`
-  (`apps/server/src/routes/app/issues.ts`); web `ProjectRepositories` in `apps/web/src/pages/IssueProjects.tsx`
+  `cleanProjectRepositories`, `PROJECT_REPOSITORIES_MAX`, `taskOfRun`, `runProjectMainRepo`, `projectReposLines`);
+  route `PUT …/issue-projects/{projectId}/repositories` (`apps/server/src/routes/app/issues.ts`); web
+  `ProjectRepositories` in `apps/web/src/pages/IssueProjects.tsx`; agents: `issueWorkBrief` (`issue-work.ts`),
+  `openTasksBrief` (`issues.ts`), `list_issues` (`issue-tools.ts`), `git_clone` (`git/tools.ts`), `prepareAgentCode`
+  (`git/machine.ts`), the GitHub check's `defaultRepo` (`tools/checks.ts`, `tools/types.ts`)
 
 ## Context
 
@@ -45,10 +48,24 @@ opens a picker of what the workspace's GitHub reaches (`GET …/github/repositor
 the order of checking is the order kept. A board whose project has none shows nothing to anyone but an
 administrator.
 
-### 4. Planned: the agents' context
+### 4. The agents' context
 
-A run on a task whose project has repositories is told them, its main one first, and `git_clone` starts from the main
-one when nobody names a repository. `list_issues` and "Your open tasks" say a task's project's repositories.
+A run's task is the one it is tied to (`agent_runs.issue_id`), else the task whose own conversation it is in (ADR
+0145): read from the database (`taskOfRun`), since a computer turn's checkouts are synced before the run's context is
+built.
+
+- The task's brief (`issueWorkBrief`) has a "Repositories" section: the project's repositories, its main one first,
+  and to work in the main one unless the task or the person names another.
+- "Your open tasks" says each task's project's repositories (three, then how many more), and `list_issues` says each
+  project's repositories once, under its tasks.
+- `git_clone` with no `repo` clones the main repository of the run's task's project, and asks for one when there is
+  none. A GitHub tool that works on a repository nobody named declares it (`defaultRepo`): the Tool Gateway's GitHub
+  check checks the agent's repositories against that one, so an unnamed call is never let through, and the tool
+  resolves and checks it again when it runs, in case the project changed in between.
+- On a connected computer, the turn starts in the project's main repository, unless the conversation names another
+  checkout, and that repository is kept up to date before the turn and offered to clone when it isn't there. Only
+  when the agent reaches it: until §5 a project's repository outside the agent's list is neither synced nor where it
+  starts, and the GitHub check refuses it as before.
 
 ### 5. Planned: reach
 

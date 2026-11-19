@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { and, eq, schema } from "@agenteschat/db";
 import {
+  createIssue,
   createIssueProject,
+  createIssueToolSource,
   createOrganization,
   deleteIssueProject,
   ForbiddenError,
+  grantScopes,
+  issueWorkBrief,
   listIssueProjects,
   NotFoundError,
+  openTasksBrief,
   PROJECT_REPOSITORIES_MAX,
   projectRepositories,
   setProjectRepositories,
@@ -115,5 +120,61 @@ describe("a project's GitHub repositories (ADR 0202)", () => {
       .from(schema.issueProjectRepositories)
       .where(eq(schema.issueProjectRepositories.projectId, project.id));
     expect(left).toEqual([]);
+  });
+});
+
+describe("what an agent is told of a task's project's repositories (ADR 0202 §4)", () => {
+  test("the task's brief names them, its main one first; its open tasks say them too", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const owner = { type: "person" as const, userId: f.owner.id };
+    const assignees = [{ type: "agent" as const, id: f.agent.id }];
+    const shop = await createIssueProject(deps, f.owner.id, f.org.id, { name: "Loja" });
+    const bare = await createIssueProject(deps, f.owner.id, f.org.id, { name: "Sem código" });
+    await setProjectRepositories(deps, f.owner.id, f.org.id, shop.id, [
+      "acme/web",
+      "acme/api",
+      "acme/infra",
+      "acme/docs",
+    ]);
+    const task = await createIssue(deps, owner, f.org.id, { title: "Checkout novo", projectId: shop.id, assignees });
+    const other = await createIssue(deps, owner, f.org.id, { title: "Planilha", projectId: bare.id, assignees });
+
+    const brief = await issueWorkBrief(f.db, f.org.id, task.id);
+    expect(brief).toContain(
+      [
+        "## Repositories",
+        "This task is in the project Loja, which works on these GitHub repositories, its main one first:",
+        "- acme/web (main)",
+        "- acme/api",
+        "- acme/infra",
+        "- acme/docs",
+        "Work in acme/web unless the task or the person names another of them. `git_clone` with no repo clones acme/web.",
+      ].join("\n"),
+    );
+    // A project with no repositories says nothing of them.
+    expect(await issueWorkBrief(f.db, f.org.id, other.id)).not.toContain("## Repositories");
+
+    const open = await openTasksBrief(f.db, f.org.id, f.agent.id, f.general.id, false);
+    expect(open).toContain("Checkout novo (todo, project Loja, repos acme/web, acme/api, acme/infra +1)");
+    expect(open).toContain("Planilha (todo, project Sem código)");
+
+    // list_issues says each project's repositories once, under its tasks.
+    const ctx = {
+      db: f.db,
+      orgId: f.org.id,
+      agentId: f.agent.id,
+      runId: crypto.randomUUID(),
+      channelId: f.general.id,
+      threadRootId: crypto.randomUUID(),
+      triggerMessageId: crypto.randomUUID(),
+    };
+    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: null, scope: "issues:read" }]);
+    const tools = await createIssueToolSource(f.artifactDeps).tools(ctx);
+    const listed = await tools.find((t) => t.name === "list_issues")?.execute({}, ctx);
+    expect(String(listed?.content)).toContain(
+      "Projects' GitHub repositories:\n- Loja: acme/web (main), acme/api, acme/infra, acme/docs",
+    );
+    expect(String(listed?.content)).not.toContain("- Sem código:");
   });
 });

@@ -8,7 +8,7 @@ import { can, requireActiveMembership } from "./organizations";
 import { ROLE_COLORS } from "./permissions";
 import { taskSeenSql } from "./task-access";
 
-const { issueProjects, issueProjectRepositories: projectRepos, issues } = schema;
+const { agentRuns, issueProjects, issueProjectRepositories: projectRepos, issues } = schema;
 
 /** A project's name holds at most this (the dialogs mirror it: packages/client/src/lib/issue-projects.ts). */
 export const PROJECT_NAME_MAX = 80;
@@ -343,4 +343,57 @@ export async function setProjectRepositories(
   });
   await announce(deps, orgId);
   return list;
+}
+
+/** A task's project's name and repositories, its main one first; null when it has no project or none linked. */
+export async function taskProjectRepositories(
+  db: Executor,
+  orgId: string,
+  issueId: string,
+): Promise<{ project: string; repositories: string[] } | null> {
+  const [row] = await db
+    .select({ projectId: issueProjects.id, project: issueProjects.name })
+    .from(issues)
+    .innerJoin(issueProjects, eq(issueProjects.id, issues.projectId))
+    .where(and(eq(issues.id, issueId), eq(issues.orgId, orgId)));
+  if (!row) return null;
+  const repositories = await projectRepositories(db, orgId, row.projectId);
+  return repositories.length ? { project: row.project, repositories } : null;
+}
+
+/**
+ * The task a run works on, for what is read before its context is (a computer turn's checkouts, `git_clone`): the
+ * task the run is tied to (`agent_runs.issue_id`), else the task whose own conversation the run is in (ADR 0145).
+ */
+export async function taskOfRun(db: Executor, orgId: string, runId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ issueId: agentRuns.issueId, channelId: agentRuns.channelId })
+    .from(agentRuns)
+    .where(and(eq(agentRuns.id, runId), eq(agentRuns.orgId, orgId)));
+  if (!row) return null;
+  if (row.issueId) return row.issueId;
+  const [task] = await db
+    .select({ id: issues.id })
+    .from(issues)
+    .where(and(eq(issues.orgId, orgId), eq(issues.conversationChannelId, row.channelId)));
+  return task?.id ?? null;
+}
+
+/** The main repository of the project of the task a run works on (ADR 0202 §4); null when there is none. */
+export async function runProjectMainRepo(db: Executor, orgId: string, runId: string): Promise<string | null> {
+  const issueId = await taskOfRun(db, orgId, runId);
+  if (!issueId) return null;
+  return (await taskProjectRepositories(db, orgId, issueId))?.repositories[0] ?? null;
+}
+
+/** The lines a task's brief says of its project's repositories (English, for the agent). */
+export function projectReposLines(p: { project: string; repositories: string[] }) {
+  const [main, ...rest] = p.repositories;
+  return [
+    "## Repositories",
+    `This task is in the project ${p.project}, which works on ${p.repositories.length === 1 ? "this GitHub repository" : "these GitHub repositories, its main one first"}:`,
+    `- ${main} (main)`,
+    ...rest.map((r) => `- ${r}`),
+    `Work in ${main} unless the task or the person names another of them. \`git_clone\` with no repo clones ${main}.`,
+  ].join("\n");
 }

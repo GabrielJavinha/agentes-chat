@@ -17,6 +17,8 @@ import {
   connectorGrantValidator,
   createApiKeyConnection,
   createGitToolSource,
+  createIssue,
+  createIssueProject,
   deleteMachine,
   directFetchTokens,
   drainOutbox,
@@ -39,10 +41,12 @@ import {
   setAgentComputerTarget,
   setAgentRepositories,
   setAgentScopes,
+  setProjectRepositories,
   type ToolContext,
   verifyGitToken,
   ZERO_OID,
 } from "../src";
+import { checkToolCall } from "../src/tools/checks";
 import { addMember, type Fixture, SECRET, setup } from "./fixtures";
 import { pairMachine } from "./machine-fixtures";
 
@@ -859,5 +863,89 @@ describe("agents' commits and the GitHub App (ADR 0156)", () => {
     expect(await prepareAgentCode(deps, turn)).toMatchObject({
       start: `You start in ${FOLDER}/repos/acme/app.\n${own}`,
     });
+  });
+});
+
+describe("a task's project's repositories (ADR 0202 §4)", () => {
+  /** A run on a task in a project whose repositories are `repos`, the main one first. */
+  async function onTask(repos: string[]) {
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const project = await createIssueProject(deps, f.owner.id, f.org.id, { name: "Loja" });
+    await setProjectRepositories(deps, f.owner.id, f.org.id, project.id, repos);
+    const task = await createIssue(deps, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "Checkout novo",
+      projectId: project.id,
+    });
+    const ctx = await runCtx();
+    await f.db.update(schema.agentRuns).set({ issueId: task.id }).where(eq(schema.agentRuns.id, ctx.runId));
+    return { project, ctx };
+  }
+
+  test("the turn starts in the project's main repository, unless the conversation names another", async () => {
+    const w = await world();
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app", "acme/web"]);
+    w.answers.fn = (req) =>
+      req.repos.map((r) => ({ repo: r.repo, dir: r.dir, path: `${FOLDER}/${r.dir}`, status: "updated" }));
+    const { project, ctx } = await onTask(["acme/web"]);
+    const turn = (trigger: string) => ({
+      orgId: f.org.id,
+      agentId: f.agent.id,
+      threadRootId: null,
+      trigger,
+      messages: [],
+      session: { machineId: w.paired.machineId, cwd: "" },
+      runId: ctx.runId,
+    });
+    expect((await prepareAgentCode(w.machineDeps, turn("bom dia")))?.cwd).toBe("repos/acme/web");
+    expect((await prepareAgentCode(w.machineDeps, turn("olha acme/app")))?.cwd).toBe("repos/acme/app");
+
+    // A main repository the agent doesn't reach is neither synced nor where it starts.
+    await setProjectRepositories({ db: f.db }, f.owner.id, f.org.id, project.id, ["beta/secret"]);
+    const out = await prepareAgentCode(w.machineDeps, turn("bom dia"));
+    expect(out?.cwd).toBe("repos/acme/app");
+    expect(JSON.stringify(w.runner.syncs().at(-1)?.repos)).not.toContain("beta/secret");
+  });
+
+  test("git_clone with no repo takes the main one, checked against the agent's repositories by the gateway and again", async () => {
+    const w = await world();
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app", "acme/web"]);
+    const source = createGitToolSource({
+      sandbox: { db: f.db, machines: { hub: w.hub }, git: w.git } as never,
+      connectors: w.connectors,
+      pubsub: f.pubsub,
+    });
+    const { project, ctx } = await onTask(["acme/web", "acme/app"]);
+    const clone = (await source.tools(ctx)).find((t) => t.name === "git_clone");
+    if (!clone) throw new Error("no git_clone");
+
+    expect(await checkToolCall(clone, {}, ctx)).toEqual({ ok: true, data: { repo: "acme/web" } });
+    const out = await clone.execute({}, ctx);
+    expect(out.isError).toBeFalsy();
+    expect(w.runner.syncs().at(-1)?.repos).toMatchObject([{ repo: "acme/web", clone: true }]);
+
+    // Outside the agent's repositories: the gateway refuses it unnamed, and so does the tool.
+    await setProjectRepositories({ db: f.db }, f.owner.id, f.org.id, project.id, ["beta/secret"]);
+    const refused = await checkToolCall(clone, {}, ctx);
+    expect(refused).toMatchObject({ ok: false, data: { deniedRepo: "beta/secret", refusal: "repo" } });
+    const syncs = w.runner.syncs().length;
+    expect((await clone.execute({}, ctx)).isError).toBe(true);
+    expect(w.runner.syncs()).toHaveLength(syncs);
+  });
+
+  test("a run on no task's project still has to name the repository", async () => {
+    const w = await world();
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app"]);
+    const source = createGitToolSource({
+      sandbox: { db: f.db, machines: { hub: w.hub }, git: w.git } as never,
+      connectors: w.connectors,
+      pubsub: f.pubsub,
+    });
+    const ctx = await runCtx();
+    const clone = (await source.tools(ctx)).find((t) => t.name === "git_clone");
+    if (!clone) throw new Error("no git_clone");
+    expect((await checkToolCall(clone, {}, ctx)).ok).toBe(false);
+    const out = await clone.execute({}, ctx);
+    expect(out).toMatchObject({ isError: true });
+    expect(out.content).toContain("repo is required");
   });
 });

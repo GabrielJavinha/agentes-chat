@@ -8663,6 +8663,10 @@ export const en = {
         save_one: "Link {{count}} repository",
         save_other: "Link {{count}} repositories",
         saveNone: "Unlink all",
+        import: "Import GitHub issues",
+        importHelp:
+          "Each issue opened in these repositories becomes a task in this project, in your name. Closing or reopening it on GitHub changes the task, and a PR that closes the issue joins it. Needs the GitHub App installed.",
+        importing: "GitHub issues become tasks",
       },
     },
     columns: {

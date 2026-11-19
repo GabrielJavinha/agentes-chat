@@ -1711,6 +1711,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PUT",
           json: { repositories },
         }),
+      setProjectGithubImport: (orgId, projectId, on) =>
+        request<{ on: boolean }>(`${org(orgId)}/issue-projects/${enc(projectId)}/github-import`, {
+          method: "PUT",
+          json: { on },
+        }),
     },
     threads: {
       list: (orgId, filters = {}) => request<ThreadPage>(`${org(orgId)}/threads`, { query: threadQuery(filters) }),

@@ -1,6 +1,6 @@
 # 0202. A project's GitHub repositories
 
-- Status: Accepted (§1 to §5 built; §6 planned)
+- Status: Accepted (built)
 - Date: 2026-11-19
 - Extends: 0171 (projects in Tarefas), 0033 and 0156 (the workspace's GitHub), the agent's repositories
   (`agent_repositories`)
@@ -10,7 +10,10 @@
   `ProjectRepositories` in `apps/web/src/pages/IssueProjects.tsx`; agents: `issueWorkBrief` (`issue-work.ts`),
   `openTasksBrief` (`issues.ts`), `list_issues` (`issue-tools.ts`), `git_clone` (`git/tools.ts`), `prepareAgentCode`
   (`git/machine.ts`), the GitHub check's `defaultRepo` (`tools/checks.ts`, `tools/types.ts`); reach:
-  `agentRepositoryList`, `agentOwnRepositoryList`, `taskProjectRepositoriesOf` (`git/repos.ts`)
+  `agentRepositoryList`, `agentOwnRepositoryList`, `taskProjectRepositoriesOf` (`git/repos.ts`); import:
+  `packages/engine/src/git/github-project-sync.ts` (`githubSyncEventOf`, `queueGitHubProjectSync`,
+  `handleGitHubProjectSync`, `closedIssuesOf`), `setProjectGithubImport`, route
+  `PUT …/issue-projects/{projectId}/github-import`, migration 0310
 
 ## Context
 
@@ -90,14 +93,36 @@ Who may give an agent a task in a project gives it that project's repositories w
 keeps the linking to administrators: they decide which repositories a project's work may touch, and assigning work
 stays the everyday act it is.
 
-### 6. Planned: issues and pull requests
+### 6. Issues and pull requests
 
-Behind a switch per project, off by default, and only with the GitHub App installed: a GitHub issue opened in a
-linked repository becomes a task in the project (`issues.github_url`), its closing and reopening move the task, and
-a pull request that names a task joins its `pull_requests`.
+An administrator turns a project's import on (`issue_projects.github_import`, `PUT …/github-import`, audited as
+`issue.project_github_import_changed`), and who did is kept (`github_import_by`): its tasks are made in their name,
+with their permissions, so one who leaves the workspace or can no longer create tasks stops it, quietly. It needs the
+GitHub App installed where the repository is: the events come through its webhook (`issues` and `pull_request`, which
+it already asks for), each queued once per delivery as a job of its own (`github_app.project_sync`), apart from what
+agents hear (ADR 0156), since one delivery may be both.
+
+- An issue opened in one of the project's repositories becomes a task in it, once (found again by its address and its
+  source `{ type: "github", repo, number }`). When several projects import from one repository, the oldest takes it.
+  An issue a bot opens (Dependabot and the like) is not imported. An archived project imports nothing.
+- Edited, the task's title and description follow; closed, the task is done, or canceled when GitHub says not planned;
+  reopened, it is to do again.
+- A pull request opened, edited or reopened joins each imported task whose issue it closes, as GitHub reads its words
+  ("Fixes #12", "closes acme/web#3", the issue's address): the link moves the task to review as any linked pull
+  request does. One that only mentions an issue joins nothing. A bot's pull request joins too: that is how an agent's,
+  opened through the app, reaches its task. Its merge closes the issue on GitHub, and that closes the task.
+- What comes from GitHub is outside text. The title keeps no control or format character, no envelope marker, one line
+  of at most 200 characters, since it is read in many prompts outside any envelope. The description is kept as
+  written (at most 20,000 characters) and agents read it inside an `untrustedBlock` in the task's brief, as the issue
+  tools already show every description.
+- The tasks are seen by the whole workspace, whatever the repository's own visibility on GitHub: an administrator
+  chose to bring that repository's issues in.
 
 ## Not in this change
 
 - The phone shows nothing of a project's repositories yet.
 - An agent's own list and a project's repositories are separate lists: picking repositories for a project changes no
   agent's settings.
+- Issues already open when the import is turned on: only what GitHub sends from then on is imported.
+- Comments, labels and assignees on GitHub, and anything back from a task to its issue: closing a task closes nothing
+  on GitHub.

@@ -8186,7 +8186,10 @@
         "notConnected": "Das GitHub des Workspace ist nicht verbunden. Verbinde es unter Konnektoren, um Repositorys auszuwählen.",
         "save_one": "{{count}} Repository verknüpfen",
         "save_other": "{{count}} Repositorys verknüpfen",
-        "saveNone": "Alle entfernen"
+        "saveNone": "Alle entfernen",
+        "import": "GitHub-Issues importieren",
+        "importHelp": "Jedes in diesen Repositorys eröffnete Issue wird in deinem Namen zu einer Aufgabe dieses Projekts. Schließen oder Wiedereröffnen auf GitHub ändert die Aufgabe, und ein PR, der das Issue schließt, wird ihr zugeordnet. Die GitHub-App muss installiert sein.",
+        "importing": "GitHub-Issues werden zu Aufgaben"
       }
     },
     "columns": {

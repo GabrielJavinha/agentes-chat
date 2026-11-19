@@ -7878,7 +7878,10 @@
         "dialogDesc": "このプロジェクトのタスクに取り組むエージェントは、これらのリポジトリを使います。最初のものがメインです。",
         "notConnected": "ワークスペースのGitHubが接続されていません。コネクタで接続するとリポジトリを選べます。",
         "save_other": "{{count}}件のリポジトリを紐づける",
-        "saveNone": "すべて解除"
+        "saveNone": "すべて解除",
+        "import": "GitHubのIssueを取り込む",
+        "importHelp": "これらのリポジトリで作成されたIssueは、あなたの名前でこのプロジェクトのタスクになります。GitHubで閉じたり再開したりするとタスクも変わり、Issueを閉じるPRはタスクに紐づきます。GitHubアプリのインストールが必要です。",
+        "importing": "GitHubのIssueがタスクになります"
       }
     },
     "columns": {

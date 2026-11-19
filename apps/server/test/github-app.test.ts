@@ -552,3 +552,48 @@ test("the server's app is the environment's when set (409), and nobody's on agen
   const seen = await first(`/api/app/organizations/${made.organization.id}/github-app`, { origin });
   expect((await seen.json()) as Info).toMatchObject({ setup: null, ownerCreates: false });
 });
+
+test("a project's import (ADR 0202 §6): administrators turn it on, and its repository's issues are queued for it", async () => {
+  t = await createTestServer({ http, env });
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  const member = await joinByInvitation(t, owner, orgId, "member@example.com");
+  const projects = `/api/app/organizations/${orgId}/issue-projects`;
+  const project = (await (await owner(projects, { json: { name: "Loja" } })).json()) as { id: string };
+  const put = (who: typeof owner, path: string, json: unknown) =>
+    who(`${projects}/${project.id}/${path}`, { method: "PUT", json });
+  expect((await put(owner, "repositories", { repositories: ["acme/web"] })).status).toBe(200);
+  expect((await put(member, "github-import", { on: true })).status).toBe(403);
+  expect(await (await put(owner, "github-import", { on: true })).json()).toEqual({ on: true });
+  const listed = (await (await owner(projects)).json()) as { projects: { githubImport: boolean }[] };
+  expect(listed.projects[0]?.githubImport).toBe(true);
+
+  await t.db
+    .insert(schema.githubAppInstallations)
+    .values({ orgId, installationId: 7, accountLogin: "acme", accountType: "Organization" });
+  const hook = (repo: string, delivery: string) => {
+    const body = JSON.stringify({
+      action: "opened",
+      installation: { id: 7 },
+      repository: { full_name: repo },
+      sender: { id: 5, login: "someone", type: "User" },
+      issue: { number: 3, title: "Bug", body: "", html_url: `https://github.com/${repo}/issues/3` },
+    });
+    return t.app.request("/api/github-app/webhook", {
+      method: "POST",
+      headers: {
+        "x-github-event": "issues",
+        "x-github-delivery": delivery,
+        "content-type": "application/json",
+        "x-hub-signature-256": signHook(body, "hook-secret"),
+      },
+      body,
+    });
+  };
+  // Opened without naming the app: no agent hears it, but the project imports it.
+  expect(await (await hook("acme/web", "d-1")).json()).toEqual({ ok: true, result: "queued" });
+  expect(await (await hook("acme/other", "d-2")).json()).toEqual({ ok: true, result: "ignored" });
+  const jobs = await t.db.select().from(schema.outbox).where(eq(schema.outbox.kind, "github_app.project_sync"));
+  expect(jobs).toHaveLength(1);
+});

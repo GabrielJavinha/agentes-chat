@@ -30,6 +30,8 @@ export interface IssueProjectRef {
 export interface IssueProjectView extends IssueProjectRef {
   open: number;
   repositories: string[];
+  /** Issues opened in its repositories become its tasks (ADR 0202 §6). */
+  githubImport: boolean;
 }
 
 /** More repositories than one project works on: the picker and the agent's brief stay short. */
@@ -110,7 +112,12 @@ export async function listIssueProjects(
   ]);
   const open = new Map(counts.map((c) => [c.projectId, c.open]));
   return {
-    projects: rows.map((p) => ({ ...projectRef(p), open: open.get(p.id) ?? 0, repositories: repos.get(p.id) ?? [] })),
+    projects: rows.map((p) => ({
+      ...projectRef(p),
+      open: open.get(p.id) ?? 0,
+      repositories: repos.get(p.id) ?? [],
+      githubImport: p.githubImport,
+    })),
     unfiled: open.get(null) ?? 0,
   };
 }
@@ -153,7 +160,7 @@ export async function createIssueProject(
   await requirePoster(deps.db, userId, orgId);
   const row = await insertProject(deps.db, orgId, input);
   await announce(deps, orgId);
-  return { ...projectRef(row), open: 0, repositories: [] };
+  return { ...projectRef(row), open: 0, repositories: [], githubImport: false };
 }
 
 /** Renames, recolours, archives or brings back a project. */
@@ -396,4 +403,43 @@ export function projectReposLines(p: { project: string; repositories: string[] }
     ...rest.map((r) => `- ${r}`),
     `Work in ${main} unless the task or the person names another of them. \`git_clone\` with no repo clones ${main}.`,
   ].join("\n");
+}
+
+/**
+ * `PUT …/issue-projects/{id}/github-import`: issues opened in the project's repositories become its tasks, and pull
+ * requests that close them join them (ADR 0202 §6). Only an administrator, as linking its repositories: the tasks are
+ * made in their name and seen by the whole workspace, whatever the repository's own visibility. Audited.
+ */
+export async function setProjectGithubImport(
+  deps: ProjectDeps,
+  userId: string,
+  orgId: string,
+  projectId: string,
+  on: boolean,
+): Promise<boolean> {
+  const membership = await requireActiveMembership(deps.db, userId, orgId);
+  if (!can(membership, "administrator")) {
+    throw new ForbiddenError("Only an administrator can import a project's GitHub issues", "issue_project.admin_only");
+  }
+  const [project] = await deps.db
+    .select({ id: issueProjects.id, githubImport: issueProjects.githubImport })
+    .from(issueProjects)
+    .where(and(eq(issueProjects.id, projectId), eq(issueProjects.orgId, orgId)));
+  if (!project) throw new NotFoundError("Project not found");
+  if (project.githubImport === on) return on;
+  await deps.db.transaction(async (tx) => {
+    await tx
+      .update(issueProjects)
+      .set({ githubImport: on, githubImportBy: on ? userId : null })
+      .where(eq(issueProjects.id, projectId));
+    await recordAudit(tx, {
+      orgId,
+      actor: { type: "person", id: userId },
+      action: "issue.project_github_import_changed",
+      target: { type: "issue_project", id: projectId },
+      details: { on },
+    });
+  });
+  await announce(deps, orgId);
+  return on;
 }

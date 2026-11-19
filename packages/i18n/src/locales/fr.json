@@ -8483,7 +8483,10 @@
         "save_one": "Lier {{count}} dépôt",
         "save_many": "Lier {{count}} dépôts",
         "save_other": "Lier {{count}} dépôts",
-        "saveNone": "Tout délier"
+        "saveNone": "Tout délier",
+        "import": "Importer les issues GitHub",
+        "importHelp": "Chaque issue ouverte dans ces dépôts devient une tâche du projet, en votre nom. La fermer ou la rouvrir sur GitHub modifie la tâche, et une PR qui ferme l’issue y est rattachée. L’app GitHub doit être installée.",
+        "importing": "Les issues GitHub deviennent des tâches"
       }
     },
     "columns": {

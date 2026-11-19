@@ -3,6 +3,7 @@ import {
   useGitHubRepos,
   useIssueProjectAction,
   useIssueProjects,
+  useSetProjectGithubImport,
   useSetProjectRepositories,
 } from "@agenteschat/client";
 import {
@@ -28,10 +29,12 @@ import {
   Field,
   FilterChip,
   type FilterOption,
+  HintLine,
   Input,
   Locked,
   Menu,
   MenuItem,
+  Switch,
 } from "@agenteschat/ui";
 import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -320,8 +323,39 @@ export function ProjectRepositories({ project }: { project: IssueProject }) {
           </Button>
         )}
       </span>
+      {list.length > 0 && <GithubImportLine project={project} admin={admin} />}
       {picking && <ProjectReposDialog project={project} onClose={() => setPicking(false)} />}
     </div>
+  );
+}
+
+/**
+ * "Importar issues do GitHub" (ADR 0202 §6): an administrator's switch, under the repositories. Anyone else sees only
+ * that it is on.
+ */
+function GithubImportLine({ project, admin }: { project: IssueProject; admin: boolean }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const save = useSetProjectGithubImport(org.id, project.id);
+  if (!admin) return project.githubImport ? <Chip icon="repo">{t("issues.projects.repos.importing")}</Chip> : null;
+  const id = `project-github-import-${project.id}`;
+  return (
+    <span className="agp-repos__line">
+      <label htmlFor={id} className="agp-repos__label">
+        <HintLine
+          name={t("common.about", { label: t("issues.projects.repos.import") })}
+          hint={t("issues.projects.repos.importHelp")}
+        >
+          {t("issues.projects.repos.import")}
+        </HintLine>
+      </label>
+      <Switch
+        id={id}
+        checked={project.githubImport}
+        disabled={save.isPending}
+        onCheckedChange={(on) => save.mutate(on)}
+      />
+    </span>
   );
 }
 

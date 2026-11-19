@@ -4244,6 +4244,8 @@ export interface IssueProject extends IssueProjectRef {
   open: number;
   /** The GitHub repositories it works on (`owner/name`), its main one first (ADR 0202). */
   repositories: string[];
+  /** Issues opened in its repositories become its tasks (ADR 0202 §6). */
+  githubImport: boolean;
 }
 
 /** The projects by name (archived last) and how many of my open tasks have none. */

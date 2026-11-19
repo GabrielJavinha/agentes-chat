@@ -1557,6 +1557,8 @@ export interface ApiClient {
       projectId: string,
       repositories: string[],
     ): Promise<{ repositories: string[] }>;
+    /** Imports the GitHub issues of its repositories as its tasks, or stops (administrators, ADR 0202 §6). */
+    setProjectGithubImport(orgId: string, projectId: string, on: boolean): Promise<{ on: boolean }>;
   };
   /** Threads (ADR 0029): the Threads page, a thread from a range, moving it, closing and archiving. */
   threads: {

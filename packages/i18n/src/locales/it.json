@@ -8494,7 +8494,10 @@
         "save_one": "Collega {{count}} repository",
         "save_many": "Collega {{count}} repository",
         "save_other": "Collega {{count}} repository",
-        "saveNone": "Scollega tutti"
+        "saveNone": "Scollega tutti",
+        "import": "Importa le issue di GitHub",
+        "importHelp": "Ogni issue aperta in questi repository diventa un’attività del progetto, a tuo nome. Chiuderla o riaprirla su GitHub cambia l’attività, e una PR che chiude la issue si aggiunge a essa. Serve l’app GitHub installata.",
+        "importing": "Le issue di GitHub diventano attività"
       }
     },
     "columns": {

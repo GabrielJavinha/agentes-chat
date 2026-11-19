@@ -8224,7 +8224,10 @@
         "notConnected": "De GitHub van de workspace is niet verbonden. Verbind hem bij Connectors om repository's te kiezen.",
         "save_one": "{{count}} repository koppelen",
         "save_other": "{{count}} repository's koppelen",
-        "saveNone": "Alles ontkoppelen"
+        "saveNone": "Alles ontkoppelen",
+        "import": "GitHub-issues importeren",
+        "importHelp": "Elke issue die in deze repository's wordt geopend, wordt op jouw naam een taak in dit project. Sluiten of heropenen op GitHub verandert de taak, en een PR die de issue sluit, wordt eraan gekoppeld. De GitHub-app moet geïnstalleerd zijn.",
+        "importing": "GitHub-issues worden taken"
       }
     },
     "columns": {

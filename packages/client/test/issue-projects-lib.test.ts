@@ -24,6 +24,7 @@ const project = (n: number, name: string, archived = false): IssueProject => ({
   color: "teal",
   archived,
   repositories: [],
+  githubImport: false,
   open: n,
 });
 /** Twenty, as the server lists them: by name, the archived last. One name is the longest a project takes. */

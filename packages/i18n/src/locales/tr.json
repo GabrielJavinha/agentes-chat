@@ -8145,7 +8145,10 @@
         "notConnected": "Çalışma alanının GitHub'ı bağlı değil. Depo seçmek için Bağlayıcılar'dan bağlayın.",
         "save_one": "{{count}} depo bağla",
         "save_other": "{{count}} depo bağla",
-        "saveNone": "Tümünün bağlantısını kaldır"
+        "saveNone": "Tümünün bağlantısını kaldır",
+        "import": "GitHub issue'larını içe aktar",
+        "importHelp": "Bu depolarda açılan her issue, senin adına bu projenin bir görevi olur. GitHub'da kapatmak ya da yeniden açmak görevi değiştirir, issue'yu kapatan PR da göreve bağlanır. GitHub uygulamasının kurulu olması gerekir.",
+        "importing": "GitHub issue'ları görev olur"
       }
     },
     "columns": {

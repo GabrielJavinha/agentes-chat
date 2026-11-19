@@ -89,7 +89,9 @@ export type IssueSource =
   | { type: "manual" }
   | { type: "message"; channelId: string; messageId: string }
   | { type: "agent"; agentId: string; workId?: string; channelId?: string; messageId?: string }
-  | { type: "webhook"; provider: string };
+  | { type: "webhook"; provider: string }
+  /** Imported from a GitHub issue (ADR 0202 §6): its description is outside text, read by agents as such. */
+  | { type: "github"; repo: string; number: number };
 
 /** An issue as the app shows it. */
 export interface IssueView {

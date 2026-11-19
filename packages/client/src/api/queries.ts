@@ -5095,6 +5095,16 @@ export function useSetProjectRepositories(orgId: string, projectId: string) {
   });
 }
 
+/** Imports a project's GitHub issues as its tasks, or stops (administrators, ADR 0202 §6). */
+export function useSetProjectGithubImport(orgId: string, projectId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (on: boolean) => api.issues.setProjectGithubImport(orgId, projectId, on),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.issueProjects(orgId) }),
+  });
+}
+
 // ── Routines ─────────────────────────────────────────────────────────────────
 
 export const routinesQuery = (api: ApiClient, orgId: string) =>

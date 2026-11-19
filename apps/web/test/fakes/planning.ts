@@ -202,6 +202,8 @@ interface Store {
   projects: IssueProjectRef[];
   /** Each project's GitHub repositories, by its id (none: no repository). */
   projectRepos: Map<string, string[]>;
+  /** The projects importing their GitHub issues, by id. */
+  projectImports: Set<string>;
   activity: Map<string, IssueActivity[]>;
   routines: Routine[];
   runs: Map<string, RoutineRun[]>;
@@ -224,6 +226,7 @@ export function createMockPlanning(
       columns: defaultColumns(),
       projects: [],
       projectRepos: new Map(),
+      projectImports: new Set(),
       activity: new Map(),
       routines: [],
       runs: new Map(),
@@ -776,7 +779,12 @@ export function createMockPlanning(
           (a, b) => Number(a.archived) - Number(b.archived) || a.name.localeCompare(b.name),
         );
         return clone({
-          projects: byName.map((p) => ({ ...p, open: open(p.id), repositories: s.projectRepos.get(p.id) ?? [] })),
+          projects: byName.map((p) => ({
+            ...p,
+            open: open(p.id),
+            repositories: s.projectRepos.get(p.id) ?? [],
+            githubImport: s.projectImports.has(p.id),
+          })),
           unfiled: open(null),
         });
       },
@@ -791,7 +799,7 @@ export function createMockPlanning(
           archived: false,
         };
         s.projects.push(project);
-        return clone({ ...project, open: 0, repositories: [] });
+        return clone({ ...project, open: 0, repositories: [], githubImport: false });
       },
       updateProject: async (orgId, projectId, patch) => {
         record("issues.updateProject", projectId, patch);
@@ -815,6 +823,14 @@ export function createMockPlanning(
         if (!s.projects.some((p) => p.id === projectId)) throw new MockNotFoundError("Projeto não encontrado.");
         s.projectRepos.set(projectId, [...repositories]);
         return { repositories: [...repositories] };
+      },
+      setProjectGithubImport: async (orgId, projectId, on) => {
+        record("issues.setProjectGithubImport", projectId, on);
+        const s = await store(orgId);
+        if (!s.projects.some((p) => p.id === projectId)) throw new MockNotFoundError("Projeto não encontrado.");
+        if (on) s.projectImports.add(projectId);
+        else s.projectImports.delete(projectId);
+        return { on };
       },
       delete: async (orgId, id) => {
         record("issues.delete", orgId, id);

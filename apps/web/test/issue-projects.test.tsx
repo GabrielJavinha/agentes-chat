@@ -428,4 +428,24 @@ describe("Tarefas: a project's GitHub repositories (ADR 0202)", () => {
     await go(api, `?project=${bakery.id}`);
     expect(reposLine()).toBeNull();
   });
+
+  test("Importar issues do GitHub: an administrator's switch once there are repositories; others see it is on", async () => {
+    const { state, api, clinic } = await withProjects();
+    state.githubRepos = listing;
+    await go(api, `?project=${clinic.id}`);
+    // No repository yet: nothing to import from.
+    expect(screen().queryByRole("switch", { name: /Importar issues do GitHub/ })).toBeNull();
+    cleanup();
+    await api.issues.setProjectRepositories(ORG_ID, clinic.id, ["acme/api"]);
+    await go(api, `?project=${clinic.id}`);
+    await click(screen().getByRole("switch", { name: /Importar issues do GitHub/ }));
+    await settle(5);
+    const calls = state.calls.filter((c) => c.method === "issues.setProjectGithubImport");
+    expect(calls.map((c) => c.args)).toEqual([[clinic.id, true]]);
+    cleanup();
+    meWithRole(state, ["post"]);
+    await go(api, `?project=${clinic.id}`);
+    expect(screen().queryByRole("switch")).toBeNull();
+    expect((reposLine() as HTMLElement).textContent).toContain("Issues do GitHub viram tarefas");
+  });
 });

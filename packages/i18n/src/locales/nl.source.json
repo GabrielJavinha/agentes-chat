@@ -19897,6 +19897,15 @@
   "issues.projects.repos.saveNone": {
     "value": "Unlink all"
   },
+  "issues.projects.repos.import": {
+    "value": "Import GitHub issues"
+  },
+  "issues.projects.repos.importHelp": {
+    "value": "Each issue opened in these repositories becomes a task in this project, in your name. Closing or reopening it on GitHub changes the task, and a PR that closes the issue joins it. Needs the GitHub App installed."
+  },
+  "issues.projects.repos.importing": {
+    "value": "GitHub issues become tasks"
+  },
   "issues.columns.add": {
     "value": "Add column"
   },

@@ -8433,7 +8433,10 @@
         "save_one": "Vincular {{count}} repositorio",
         "save_many": "Vincular {{count}} repositorios",
         "save_other": "Vincular {{count}} repositorios",
-        "saveNone": "Desvincular todos"
+        "saveNone": "Desvincular todos",
+        "import": "Importar issues de GitHub",
+        "importHelp": "Cada issue abierta en estos repositorios se convierte en una tarea del proyecto, a tu nombre. Cerrarla o reabrirla en GitHub cambia la tarea, y un PR que cierra la issue se suma a ella. Necesita la app de GitHub instalada.",
+        "importing": "Las issues de GitHub se vuelven tareas"
       }
     },
     "columns": {

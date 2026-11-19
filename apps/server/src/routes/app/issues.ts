@@ -20,6 +20,7 @@ import {
   ROLE_COLORS,
   setCriterion,
   setIssueAudience,
+  setProjectGithubImport,
   setProjectRepositories,
   updateIssue,
   updateIssueColumn,
@@ -70,6 +71,9 @@ const ProjectRepositories = z
 const Project = ProjectRef.extend({
   open: z.number().int().openapi({ description: "Open tasks in it that you see." }),
   repositories: ProjectRepositories,
+  githubImport: z
+    .boolean()
+    .openapi({ description: "Issues opened in its repositories become its tasks (ADR 0202 §6)." }),
 }).openapi("IssueProject");
 const ProjectId = z
   .uuid()
@@ -557,6 +561,26 @@ export function issueRoutes(deps: AppDeps) {
         { repositories: await setProjectRepositories(issues, c.get("user").id, orgId, projectId, repositories) },
         200,
       );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/issue-projects/{projectId}/github-import",
+      tags,
+      security,
+      summary: "Import the GitHub issues of a project's repositories as its tasks (administrators); audited",
+      description:
+        "On: an issue opened in one of its repositories becomes a task in it, in your name, its edits, closing and " +
+        "reopening follow, and a pull request that closes it joins it. Needs the GitHub App installed there.",
+      request: { params: ProjectParams, body: body(z.object({ on: z.boolean() })) },
+      responses: { 200: json(z.object({ on: z.boolean() })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, projectId } = c.req.valid("param");
+      const on = await setProjectGithubImport(issues, c.get("user").id, orgId, projectId, c.req.valid("json").on);
+      return c.json({ on }, 200);
     },
   );
 

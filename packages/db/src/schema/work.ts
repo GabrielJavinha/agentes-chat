@@ -72,6 +72,12 @@ export const issueProjects = pgTable(
     /** One of the roles' colors (`ROLE_COLORS`). */
     color: text().notNull().default("graphite"),
     archivedAt: timestamp({ withTimezone: true }),
+    /**
+     * Issues opened in its repositories become its tasks, and their pull requests join them (ADR 0202 §6). Turned on
+     * by an administrator, `github_import_by`, in whose name the tasks are made: one who leaves stops it.
+     */
+    githubImport: boolean().notNull().default(false),
+    githubImportBy: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   // Agents name a project by its name, so two can't differ only by case.

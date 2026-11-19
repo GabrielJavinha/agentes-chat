@@ -73,6 +73,7 @@ import { FOLLOW_UP_JOB, wakeFollowUp } from "./follow-through";
 import { cutText } from "./format";
 import type { GitHubAppAccess } from "./git/github-call";
 import { GITHUB_EVENT_JOB, type GitHubAppEvent, handleGitHubAppEvent } from "./git/github-events";
+import { GITHUB_PROJECT_SYNC_JOB, type GitHubSyncEvent, handleGitHubProjectSync } from "./git/github-project-sync";
 import { FILE_JOIN_REQUEST_JOB, fileJoinRequest } from "./invite-requests";
 import { announceTaskConversation } from "./issues";
 import type { JevKey, JevKeySource } from "./jev-key";
@@ -1231,6 +1232,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // What happened on GitHub to an item an agent worked on, or naming the app (ADR 0156).
     [GITHUB_EVENT_JOB]: async (job) => {
       await handleGitHubAppEvent({ db: deps.db, pubsub: deps.pubsub }, orgOf(job), job.payload.event as GitHubAppEvent);
+    },
+    // An issue or a pull request in a repository a project imports from (ADR 0202 §6).
+    [GITHUB_PROJECT_SYNC_JOB]: async (job) => {
+      await handleGitHubProjectSync(
+        { db: deps.db, pubsub: deps.pubsub },
+        orgOf(job),
+        job.payload.event as GitHubSyncEvent,
+      );
     },
   };
   // A waiting run whose ask may have just been handled here checks early (`parked-asks.ts`). After the routing, not

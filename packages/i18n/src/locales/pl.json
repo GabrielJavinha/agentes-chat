@@ -8768,7 +8768,10 @@
         "save_few": "Powiąż {{count}} repozytoria",
         "save_many": "Powiąż {{count}} repozytoriów",
         "save_other": "Powiąż {{count}} repozytorium",
-        "saveNone": "Odłącz wszystkie"
+        "saveNone": "Odłącz wszystkie",
+        "import": "Importuj issues z GitHub",
+        "importHelp": "Każde issue otwarte w tych repozytoriach staje się zadaniem projektu w Twoim imieniu. Zamknięcie lub ponowne otwarcie na GitHub zmienia zadanie, a PR zamykający issue zostaje do niego dołączony. Wymaga zainstalowanej aplikacji GitHub.",
+        "importing": "Issues z GitHub stają się zadaniami"
       }
     },
     "columns": {

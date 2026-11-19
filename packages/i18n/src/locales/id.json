@@ -7905,7 +7905,10 @@
         "dialogDesc": "Agen yang mengerjakan tugas proyek ini memakai repositori ini. Yang pertama adalah repositori utama.",
         "notConnected": "GitHub ruang kerja belum terhubung. Hubungkan di Konektor untuk memilih repositori.",
         "save_other": "Tautkan {{count}} repositori",
-        "saveNone": "Lepaskan semua"
+        "saveNone": "Lepaskan semua",
+        "import": "Impor issue GitHub",
+        "importHelp": "Setiap issue yang dibuka di repositori ini menjadi tugas proyek atas namamu. Menutup atau membuka lagi di GitHub mengubah tugasnya, dan PR yang menutup issue itu ditautkan ke tugasnya. Perlu aplikasi GitHub terpasang.",
+        "importing": "Issue GitHub menjadi tugas"
       }
     },
     "columns": {

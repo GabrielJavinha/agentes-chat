@@ -8610,6 +8610,10 @@ export const ptBR = {
         save_one: "Vincular {{count}} repositório",
         save_other: "Vincular {{count}} repositórios",
         saveNone: "Desvincular todos",
+        import: "Importar issues do GitHub",
+        importHelp:
+          "Cada issue aberta nestes repositórios vira uma tarefa do projeto, em seu nome. Fechar ou reabrir no GitHub muda a tarefa, e um PR que fecha a issue entra nela. Precisa do app do GitHub instalado.",
+        importing: "Issues do GitHub viram tarefas",
       },
     },
     columns: {

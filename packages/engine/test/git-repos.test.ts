@@ -3,14 +3,18 @@ import { generateKeyPairSync } from "node:crypto";
 import { desc, eq, schema } from "@agenteschat/db";
 import {
   agentMergeRepos,
+  agentOwnRepositoryList,
   agentRepositoryList,
   type ConnectorDeps,
+  checkGithubCall,
   cleanRepoList,
   connectorGrantValidator,
   createAgentRuns,
   createApiKeyConnection,
   createConnectorToolSource,
   createGitToolSource,
+  createIssue,
+  createIssueProject,
   createToolGateway,
   dropAgentRules,
   ForbiddenError,
@@ -31,9 +35,11 @@ import {
   setAgentMergeRepositories,
   setAgentRepositories,
   setAgentScopes,
+  setProjectRepositories,
   type ToolContext,
   takeBridgeResult,
   updateAgent,
+  updateIssue,
   ValidationError,
   wrapExternal,
 } from "../src";
@@ -138,6 +144,89 @@ describe("saving", () => {
       { repositories: ["ACME/app"] },
       { repositories: [] },
     ]);
+  });
+});
+
+describe("reach through a task's project (ADR 0202 §5)", () => {
+  /** A project working on `repos`, and a task in it assigned to the agent. */
+  async function projectTask(repos: string[]) {
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const project = await createIssueProject(deps, f.owner.id, f.org.id, { name: "Loja" });
+    await setProjectRepositories(deps, f.owner.id, f.org.id, project.id, repos);
+    const task = await createIssue(deps, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "Checkout novo",
+      projectId: project.id,
+      assignees: [{ type: "agent", id: f.agent.id }],
+    });
+    return { deps, project, task };
+  }
+  const reaches = async (repo: string) => (await checkGithubCall(f.db, f.org.id, f.agent.id, { repo })).ok;
+
+  test("an open task in a project adds its repositories after the agent's own; closing it or leaving it ends that", async () => {
+    f = await setup();
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app"]);
+    expect(await reaches("beta/web")).toBe(false);
+    const { deps, task } = await projectTask(["beta/web", "acme/app"]);
+
+    // Its own list stays first (where it starts), each repository once; its settings still show its own list.
+    expect(await agentRepositoryList(f.db, f.org.id, f.agent.id)).toEqual(["acme/app", "beta/web"]);
+    expect(await getAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id)).toEqual(["acme/app"]);
+    expect(await reaches("beta/web")).toBe(true);
+    expect(await reaches("beta/other")).toBe(false);
+    expect(repositoriesPrompt(await agentRepositoryList(f.db, f.org.id, f.agent.id))).toContain(
+      "When nobody names a repository, work in acme/app.",
+    );
+
+    const owner = { type: "person" as const, userId: f.owner.id };
+    // In review is still open work; done ends it, and reopening brings it back.
+    await updateIssue(deps, owner, f.org.id, task.id, { status: "in_review" });
+    expect(await reaches("beta/web")).toBe(true);
+    await updateIssue(deps, owner, f.org.id, task.id, { status: "done" });
+    expect(await reaches("beta/web")).toBe(false);
+    await updateIssue(deps, owner, f.org.id, task.id, { status: "todo" });
+    expect(await reaches("beta/web")).toBe(true);
+    // Taken off the task: gone at once.
+    await updateIssue(deps, owner, f.org.id, task.id, { assignees: [] });
+    expect(await agentRepositoryList(f.db, f.org.id, f.agent.id)).toEqual(["acme/app"]);
+  });
+
+  test("only the assignees' reach grows, an agent with no list is unchanged, an owner/* covers the project's", async () => {
+    f = await setup();
+    const deps = { db: f.db, pubsub: f.pubsub };
+    const project = await createIssueProject(deps, f.owner.id, f.org.id, { name: "Outra" });
+    await setProjectRepositories(deps, f.owner.id, f.org.id, project.id, ["beta/web"]);
+    // A task the agent isn't on adds nothing.
+    await createIssue(deps, { type: "person", userId: f.owner.id }, f.org.id, { title: "x", projectId: project.id });
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app"]);
+    expect(await reaches("beta/web")).toBe(false);
+
+    await projectTask(["beta/web", "acme/api"]);
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, []);
+    expect(await agentRepositoryList(f.db, f.org.id, f.agent.id)).toEqual([]);
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/*"]);
+    expect(await agentRepositoryList(f.db, f.org.id, f.agent.id)).toEqual(["acme/*", "beta/web"]);
+  });
+
+  test("it never widens what only its own list decides: its owner's edits, merging without asking", async () => {
+    f = await setup();
+    await setAgentRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["acme/app"]);
+    await projectTask(["beta/web"]);
+    const member = await addMember(f.db, f.org.id, "member");
+    await f.db.update(schema.agents).set({ ownerUserId: member.id }).where(eq(schema.agents.id, f.agent.id));
+    // Its owner can't keep a task's repository for good: that would widen its own list.
+    await expect(
+      setAgentRepositories(f.db, member.id, f.org.id, f.agent.id, ["acme/app", "beta/web"]),
+    ).rejects.toBeInstanceOf(ForbiddenError);
+    expect(await agentOwnRepositoryList(f.db, f.org.id, f.agent.id)).toEqual(["acme/app"]);
+    // Nor merge there without asking.
+    await expect(
+      setAgentMergeRepositories(f.db, f.owner.id, f.org.id, f.agent.id, ["beta/web"]),
+    ).rejects.toBeInstanceOf(ValidationError);
+    await f.db
+      .update(schema.agents)
+      .set({ mergeRepos: ["beta/web"] })
+      .where(eq(schema.agents.id, f.agent.id));
+    expect(await agentMergeRepos(f.db, f.org.id, f.agent.id)).toEqual([]);
   });
 });
 

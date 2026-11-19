@@ -13,6 +13,8 @@ import {
   connectorGrantValidator,
   createApiKeyConnection,
   createGitToolSource,
+  createIssue,
+  createIssueProject,
   createToolGateway,
   decideApproval,
   drainOutbox,
@@ -41,7 +43,9 @@ import {
   setAgentRepositories,
   setAgentScopes,
   setOrgStanding,
+  setProjectRepositories,
   type ToolContext,
+  updateIssue,
   verifyGitToken,
   ZERO_OID,
 } from "../src";
@@ -455,6 +459,20 @@ describe("git proxy", () => {
     expect((await w.call("acme/other.git/info/refs", { query: "?service=git-upload-pack" })).status).toBe(200);
     expect((await w.call("beta/other.git/info/refs", { query: "?service=git-upload-pack" })).status).toBe(403);
     expect((await w.call("acme/app.git/info/refs", { query: "?service=git-receive-pack" })).status).toBe(403);
+
+    // An open task in a project that works on beta/other lets it through, until the task is done (ADR 0202 §5).
+    const tasks = { db: f.db, pubsub: f.pubsub };
+    const project = await createIssueProject(tasks, f.owner.id, f.org.id, { name: "Beta" });
+    await setProjectRepositories(tasks, f.owner.id, f.org.id, project.id, ["beta/other"]);
+    const owner = { type: "person" as const, userId: f.owner.id };
+    const task = await createIssue(tasks, owner, f.org.id, {
+      title: "Ajuste",
+      projectId: project.id,
+      assignees: [{ type: "agent", id: f.agent.id }],
+    });
+    expect((await w.call("beta/other.git/info/refs", { query: "?service=git-upload-pack" })).status).toBe(200);
+    await updateIssue(tasks, owner, f.org.id, task.id, { status: "done" });
+    expect((await w.call("beta/other.git/info/refs", { query: "?service=git-upload-pack" })).status).toBe(403);
 
     const big = await handleGitProxy(
       { ...w.deps, limits: { fetchRequestBytes: 10 } },

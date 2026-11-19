@@ -1,6 +1,6 @@
 # 0202. A project's GitHub repositories
 
-- Status: Accepted (§1 to §4 built; §5 and §6 planned)
+- Status: Accepted (§1 to §5 built; §6 planned)
 - Date: 2026-11-19
 - Extends: 0171 (projects in Tarefas), 0033 and 0156 (the workspace's GitHub), the agent's repositories
   (`agent_repositories`)
@@ -9,7 +9,8 @@
   route `PUT …/issue-projects/{projectId}/repositories` (`apps/server/src/routes/app/issues.ts`); web
   `ProjectRepositories` in `apps/web/src/pages/IssueProjects.tsx`; agents: `issueWorkBrief` (`issue-work.ts`),
   `openTasksBrief` (`issues.ts`), `list_issues` (`issue-tools.ts`), `git_clone` (`git/tools.ts`), `prepareAgentCode`
-  (`git/machine.ts`), the GitHub check's `defaultRepo` (`tools/checks.ts`, `tools/types.ts`)
+  (`git/machine.ts`), the GitHub check's `defaultRepo` (`tools/checks.ts`, `tools/types.ts`); reach:
+  `agentRepositoryList`, `agentOwnRepositoryList`, `taskProjectRepositoriesOf` (`git/repos.ts`)
 
 ## Context
 
@@ -64,16 +65,30 @@ built.
   resolves and checks it again when it runs, in case the project changed in between.
 - On a connected computer, the turn starts in the project's main repository, unless the conversation names another
   checkout, and that repository is kept up to date before the turn and offered to clone when it isn't there. Only
-  when the agent reaches it: until §5 a project's repository outside the agent's list is neither synced nor where it
-  starts, and the GitHub check refuses it as before.
+  when the agent reaches it (§5): a run on a task it isn't assigned to, in a project whose repository is outside its
+  list, is neither synced there nor starts there, and the GitHub check refuses it as before.
 
-### 5. Planned: reach
+### 5. Reach
 
 An agent with its own list of repositories reaches, besides it, the repositories of the projects in which it has an
-open task. This is computed where the list is read (`agentRepositoryList`), so the git proxy, the Tool Gateway and
-`git_clone` check the same thing. An agent with no list already reaches every repository and is unchanged. Closing the
-task, or taking the agent off it, ends that reach. §2 is what keeps this from being a way around who may widen an
-agent's access.
+open task: to do, in progress or in review, with the agent among its assignees (`taskProjectRepositoriesOf`). It is
+computed each time the list is read (`agentRepositoryList`: its own list first, then what the list doesn't cover), so
+the git proxy, the Tool Gateway's GitHub check, the read tokens straight from GitHub (ADR 0116), the checkouts synced
+before a turn and the "Your GitHub repositories" prompt all check the same thing, and nothing is kept to undo.
+Finishing or canceling the task, or taking the agent off it, ends that reach at the next read. An agent with no list
+already reaches every repository and is unchanged.
+
+What only the agent's own list decides reads that list alone (`agentOwnRepositoryList`):
+
+- its settings, which show and save its own list, and the rule that its owner only narrows it: a task's repository is
+  never a way to keep a repository for good;
+- "Pode fazer merge sem perguntar": chosen among its own repositories and applied within them, so reach through a task
+  never merges without a person's approval;
+- whether it works on its own computer rather than spilling over to another (it "has repositories").
+
+Who may give an agent a task in a project gives it that project's repositories while the task is open. That is why §2
+keeps the linking to administrators: they decide which repositories a project's work may touch, and assigning work
+stays the everyday act it is.
 
 ### 6. Planned: issues and pull requests
 

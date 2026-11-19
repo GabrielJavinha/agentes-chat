@@ -230,7 +230,7 @@ import { comesBackHere, FOLLOW_UP_TOOL, wakesLater } from "./follow-through";
 import { cutText, hasQuestionMark } from "./format";
 import type { ModelGateway } from "./gateway";
 import { type CodeSetup, codeStart } from "./git/machine";
-import { agentRepositoryList, repositoriesPrompt } from "./git/repos";
+import { agentOwnRepositoryList, agentRepositoryList, repositoriesPrompt } from "./git/repos";
 import { askVerdict, handOffHolds, repeatedAsk, saysNeedsNothing } from "./hand-off";
 import { UPDATE_ISSUE_TOOL } from "./issue-tools";
 import { linkRunToIssue, mirrorReplyToIssue } from "./issues";
@@ -4979,7 +4979,7 @@ async function executeRunInner(
             await runAuthority(db, { ...run, transcript: transcript as unknown as Record<string, unknown> }),
           );
           // An agent with repositories works in its checkouts, on its own computer.
-          if (!personId || (await agentRepositoryList(db, run.orgId, agent.id)).length > 0) return null;
+          if (!personId || (await agentOwnRepositoryList(db, run.orgId, agent.id)).length > 0) return null;
           const session = { id: Bun.randomUUIDv7() };
           const found = await spillTarget(deps, agent, plan, personId, session);
           if (found) await db.update(agentRuns).set({ brainSessionId: session.id }).where(eq(agentRuns.id, run.id));

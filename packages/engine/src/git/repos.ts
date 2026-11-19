@@ -1,5 +1,5 @@
 import type { MergeDone } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, schema } from "@agenteschat/db";
+import { and, asc, type Database, type Executor, eq, schema, sql } from "@agenteschat/db";
 import { recordAgentActions } from "../agent-actions";
 import { getAgent } from "../agents";
 import { managesAgent } from "../audience";
@@ -10,7 +10,7 @@ import { requirePermission } from "../organizations";
 import { approvalsLevelOf } from "../tools/run-policy";
 import type { ToolContext } from "../tools/types";
 
-const { agentRepositories: table, agents } = schema;
+const { agentRepositories: table, agents, issueAssignees, issueProjectRepositories, issues } = schema;
 
 /**
  * The GitHub repositories an agent may use (`agent_repositories`): an
@@ -86,14 +86,58 @@ export function cleanRepoList(input: readonly string[]): { list: string[]; inval
   return { list, invalid };
 }
 
-/** The agent's repositories in order (no permission check: for the proxy, the gateway and the prompt). */
-export async function agentRepositoryList(db: Executor, orgId: string, agentId: string): Promise<string[]> {
+/**
+ * The agent's own repositories in order, as its settings hold them (no permission check). What it may reach is
+ * `agentRepositoryList`; this one is for what only its own list decides: its settings, who may widen them, where it
+ * merges without asking.
+ */
+export async function agentOwnRepositoryList(db: Executor, orgId: string, agentId: string): Promise<string[]> {
   const rows = await db
     .select({ repo: table.repo })
     .from(table)
     .where(and(eq(table.orgId, orgId), eq(table.agentId, agentId)))
     .orderBy(asc(table.position));
   return rows.map((r) => r.repo);
+}
+
+/**
+ * The repositories of the projects in which the agent has an open task (ADR 0202 §5): to do, in progress or in
+ * review, with the agent among its assignees. Closing the task, or taking the agent off it, ends them.
+ */
+export async function taskProjectRepositoriesOf(db: Executor, orgId: string, agentId: string): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ repo: issueProjectRepositories.repo })
+    .from(issueAssignees)
+    .innerJoin(issues, eq(issues.id, issueAssignees.issueId))
+    .innerJoin(issueProjectRepositories, eq(issueProjectRepositories.projectId, issues.projectId))
+    .where(
+      and(
+        eq(issueAssignees.orgId, orgId),
+        eq(issueAssignees.assigneeType, "agent"),
+        eq(issueAssignees.assigneeId, agentId),
+        eq(issues.orgId, orgId),
+        sql`${issues.status} in ('todo', 'in_progress', 'in_review')`,
+      ),
+    )
+    .orderBy(asc(issueProjectRepositories.repo));
+  return rows.map((r) => r.repo);
+}
+
+/**
+ * What the agent may reach, in order (no permission check: for the proxy, the gateway, its computer and the prompt):
+ * its own list, then the repositories of the projects it has an open task in that the list doesn't cover (ADR 0202
+ * §5). An empty list is every repository, as before: nothing to add to it.
+ */
+export async function agentRepositoryList(db: Executor, orgId: string, agentId: string): Promise<string[]> {
+  const own = await agentOwnRepositoryList(db, orgId, agentId);
+  if (own.length === 0) return own;
+  const extra = await taskProjectRepositoriesOf(db, orgId, agentId);
+  const out = [...own];
+  for (const repo of extra) {
+    const [owner = "", name = ""] = repo.split("/");
+    if (!repoInList(out, owner, name)) out.push(repo);
+  }
+  return out;
 }
 
 /** Whether every entry of `next` was already in reach with `current` (empty = every repository). */
@@ -111,7 +155,7 @@ function withinRepos(current: readonly string[], next: readonly string[]) {
 export async function getAgentRepositories(db: Database, actorId: string, orgId: string, agentId: string) {
   await requirePermission(db, actorId, orgId, "read");
   if (!(await getAgent(db, orgId, agentId))) throw new NotFoundError("Agent not found");
-  return agentRepositoryList(db, orgId, agentId);
+  return agentOwnRepositoryList(db, orgId, agentId);
 }
 
 /**
@@ -136,7 +180,7 @@ export async function setAgentRepositories(
   }
   const { list, invalid } = cleanRepoList(repositories);
   if (invalid.length > 0) throw new ValidationError(`Not a repository (owner/name or owner/*): ${invalid.join(", ")}`);
-  if (!admin && !withinRepos(await agentRepositoryList(db, orgId, agentId), list)) {
+  if (!admin && !withinRepos(await agentOwnRepositoryList(db, orgId, agentId), list)) {
     throw new ForbiddenError("Only an admin can give an agent more repositories. Its owner can only take some away.");
   }
   if (list.length > MAX_AGENT_REPOSITORIES) {
@@ -179,7 +223,8 @@ const inReach = (list: readonly string[], entry: string) => {
 export async function agentMergeRepos(db: Executor, orgId: string, agentId: string): Promise<string[]> {
   const chosen = await chosenMergeRepos(db, orgId, agentId);
   if (chosen.length === 0) return [];
-  const list = await agentRepositoryList(db, orgId, agentId);
+  // Its own list only: reach through a task's project (ADR 0202 §5) never merges without asking.
+  const list = await agentOwnRepositoryList(db, orgId, agentId);
   return chosen.filter((entry) => inReach(list, entry));
 }
 
@@ -227,7 +272,7 @@ export async function setAgentMergeRepositories(
   if (invalid.length + whole.length > 0) {
     throw new ValidationError(`Not a repository (owner/name): ${[...invalid, ...whole].join(", ")}`);
   }
-  const reach = await agentRepositoryList(db, orgId, agentId);
+  const reach = await agentOwnRepositoryList(db, orgId, agentId);
   const outside = list.filter((entry) => !inReach(reach, entry));
   if (outside.length > 0) throw new ValidationError(`The agent doesn't use ${outside.join(", ")}`);
   if (list.length > MAX_AGENT_REPOSITORIES) {

@@ -8650,6 +8650,20 @@ export const en = {
       deleteTitle: "Delete the project {{name}}?",
       deleteBody: "Its tasks stay, with no project.",
       empty: "No tasks in this project yet.",
+      /** The GitHub repositories a project works on (ADR 0202): the line under a project board's title and its dialog. */
+      repos: {
+        label: "Repositories",
+        main: "Main",
+        makeMain: "Make main",
+        open: "Open on GitHub",
+        link: "Link a repository",
+        dialogTitle: "{{name}}'s repositories",
+        dialogDesc: "Agents working on this project's tasks use these repositories. The first one is the main one.",
+        notConnected: "The workspace's GitHub isn't connected. Connect it in Connectors to pick repositories.",
+        save_one: "Link {{count}} repository",
+        save_other: "Link {{count}} repositories",
+        saveNone: "Unlink all",
+      },
     },
     columns: {
       add: "Add column",

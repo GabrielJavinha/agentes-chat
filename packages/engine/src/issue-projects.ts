@@ -1,12 +1,14 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, type Executor, eq, inArray, schema, sql } from "@agenteschat/db";
+import { recordAudit } from "./audit";
 import { ForbiddenError, isUniqueViolation, NotFoundError, ValidationError } from "./errors";
 import { publishOrgEvent } from "./events";
+import { normalizeRepoEntry } from "./git/repos";
 import { can, requireActiveMembership } from "./organizations";
 import { ROLE_COLORS } from "./permissions";
 import { taskSeenSql } from "./task-access";
 
-const { issueProjects, issues } = schema;
+const { issueProjects, issueProjectRepositories: projectRepos, issues } = schema;
 
 /** A project's name holds at most this (the dialogs mirror it: packages/client/src/lib/issue-projects.ts). */
 export const PROJECT_NAME_MAX = 80;
@@ -21,10 +23,17 @@ export interface IssueProjectRef {
   archived: boolean;
 }
 
-/** A project in the projects menu. `open`: the open tasks in it that the reader sees. */
+/**
+ * A project in the projects menu. `open`: the open tasks in it that the reader sees. `repositories`: the GitHub
+ * repositories it works on (`owner/name`), its main one first (ADR 0202).
+ */
 export interface IssueProjectView extends IssueProjectRef {
   open: number;
+  repositories: string[];
 }
+
+/** More repositories than one project works on: the picker and the agent's brief stay short. */
+export const PROJECT_REPOSITORIES_MAX = 20;
 
 type ProjectRow = typeof issueProjects.$inferSelect;
 
@@ -84,7 +93,7 @@ export async function listIssueProjects(
   orgId: string,
 ): Promise<{ projects: IssueProjectView[]; unfiled: number }> {
   await requireActiveMembership(db, userId, orgId);
-  const [rows, counts] = await Promise.all([
+  const [rows, counts, repos] = await Promise.all([
     projectRows(db, orgId),
     db
       .select({ projectId: issues.projectId, open: sql<number>`count(*)::int` })
@@ -97,10 +106,11 @@ export async function listIssueProjects(
         ),
       )
       .groupBy(issues.projectId),
+    reposByProject(db, orgId),
   ]);
   const open = new Map(counts.map((c) => [c.projectId, c.open]));
   return {
-    projects: rows.map((p) => ({ ...projectRef(p), open: open.get(p.id) ?? 0 })),
+    projects: rows.map((p) => ({ ...projectRef(p), open: open.get(p.id) ?? 0, repositories: repos.get(p.id) ?? [] })),
     unfiled: open.get(null) ?? 0,
   };
 }
@@ -143,7 +153,7 @@ export async function createIssueProject(
   await requirePoster(deps.db, userId, orgId);
   const row = await insertProject(deps.db, orgId, input);
   await announce(deps, orgId);
-  return { ...projectRef(row), open: 0 };
+  return { ...projectRef(row), open: 0, repositories: [] };
 }
 
 /** Renames, recolours, archives or brings back a project. */
@@ -238,4 +248,99 @@ export async function projectByName(
     ? `There is no project named "${wanted}". The projects are: ${names.join(", ")}. Use one of them, or set new_project only when the person asked for a new project.`
     : `There is no project named "${wanted}", and no projects yet. Set new_project only when the person asked for a new project.`;
   throw new ValidationError(message, "issue_project.unknown");
+}
+
+/** Every project's repositories in the org, in order, by project id. */
+async function reposByProject(db: Executor, orgId: string) {
+  const rows = await db
+    .select({ projectId: projectRepos.projectId, repo: projectRepos.repo })
+    .from(projectRepos)
+    .where(eq(projectRepos.orgId, orgId))
+    .orderBy(asc(projectRepos.projectId), asc(projectRepos.position));
+  const out = new Map<string, string[]>();
+  for (const r of rows) out.set(r.projectId, [...(out.get(r.projectId) ?? []), r.repo]);
+  return out;
+}
+
+/** One project's repositories in order, its main one first (no permission check: for the agents' context). */
+export async function projectRepositories(db: Executor, orgId: string, projectId: string): Promise<string[]> {
+  const rows = await db
+    .select({ repo: projectRepos.repo })
+    .from(projectRepos)
+    .where(and(eq(projectRepos.orgId, orgId), eq(projectRepos.projectId, projectId)))
+    .orderBy(asc(projectRepos.position));
+  return rows.map((r) => r.repo);
+}
+
+/**
+ * A project's repositories as they are saved: each one `owner/name` (a GitHub address or `.git` will do, a whole
+ * account won't), no repeats whatever their capitals, the order kept.
+ */
+export function cleanProjectRepositories(input: readonly string[]): string[] {
+  const out: string[] = [];
+  const invalid: string[] = [];
+  for (const raw of input) {
+    const entry = normalizeRepoEntry(raw);
+    if (!entry || entry.endsWith("/*")) {
+      invalid.push(raw);
+      continue;
+    }
+    if (!out.some((e) => e.toLowerCase() === entry.toLowerCase())) out.push(entry);
+  }
+  if (invalid.length > 0) {
+    throw new ValidationError(
+      `Not a repository (owner/name): ${invalid.join(", ")}`,
+      "issue_project.invalid_repository",
+      { invalid },
+    );
+  }
+  if (out.length > PROJECT_REPOSITORIES_MAX) {
+    throw new ValidationError(
+      `A project works on at most ${PROJECT_REPOSITORIES_MAX} repositories`,
+      "issue_project.too_many_repositories",
+      { max: PROJECT_REPOSITORIES_MAX },
+    );
+  }
+  return out;
+}
+
+/**
+ * `PUT …/issue-projects/{id}/repositories`: replaces the project's repositories, its main one first. Only an
+ * administrator (or the owner): the agents working on a project's tasks are pointed at these repositories, and ADR
+ * 0202 lets them reach them, so linking one is a grant to agents and never a poster's call. Audited.
+ */
+export async function setProjectRepositories(
+  deps: ProjectDeps,
+  userId: string,
+  orgId: string,
+  projectId: string,
+  repositories: readonly string[],
+): Promise<string[]> {
+  const membership = await requireActiveMembership(deps.db, userId, orgId);
+  if (!can(membership, "administrator")) {
+    throw new ForbiddenError("Only an administrator can link repositories to a project", "issue_project.admin_only");
+  }
+  const [project] = await deps.db
+    .select({ id: issueProjects.id })
+    .from(issueProjects)
+    .where(and(eq(issueProjects.id, projectId), eq(issueProjects.orgId, orgId)));
+  if (!project) throw new NotFoundError("Project not found");
+  const list = cleanProjectRepositories(repositories);
+  const before = await projectRepositories(deps.db, orgId, projectId);
+  if (before.length === list.length && before.every((r, i) => r === list[i])) return list;
+  await deps.db.transaction(async (tx) => {
+    await tx.delete(projectRepos).where(and(eq(projectRepos.orgId, orgId), eq(projectRepos.projectId, projectId)));
+    if (list.length > 0) {
+      await tx.insert(projectRepos).values(list.map((repo, position) => ({ orgId, projectId, repo, position })));
+    }
+    await recordAudit(tx, {
+      orgId,
+      actor: { type: "person", id: userId },
+      action: "issue.project_repositories_changed",
+      target: { type: "issue_project", id: projectId },
+      details: { repositories: list, before },
+    });
+  });
+  await announce(deps, orgId);
+  return list;
 }

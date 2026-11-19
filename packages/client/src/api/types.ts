@@ -4242,6 +4242,8 @@ export interface IssueProjectRef {
 /** A project in the projects menu, with the open tasks in it that I see. */
 export interface IssueProject extends IssueProjectRef {
   open: number;
+  /** The GitHub repositories it works on (`owner/name`), its main one first (ADR 0202). */
+  repositories: string[];
 }
 
 /** The projects by name (archived last) and how many of my open tasks have none. */

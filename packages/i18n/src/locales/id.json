@@ -7894,7 +7894,19 @@
       "delete": "Hapus proyek",
       "deleteTitle": "Hapus proyek {{name}}?",
       "deleteBody": "Tugasnya tetap ada, tanpa proyek.",
-      "empty": "Belum ada tugas di proyek ini."
+      "empty": "Belum ada tugas di proyek ini.",
+      "repos": {
+        "label": "Repositori",
+        "main": "Utama",
+        "makeMain": "Jadikan utama",
+        "open": "Buka di GitHub",
+        "link": "Tautkan repositori",
+        "dialogTitle": "Repositori {{name}}",
+        "dialogDesc": "Agen yang mengerjakan tugas proyek ini memakai repositori ini. Yang pertama adalah repositori utama.",
+        "notConnected": "GitHub ruang kerja belum terhubung. Hubungkan di Konektor untuk memilih repositori.",
+        "save_other": "Tautkan {{count}} repositori",
+        "saveNone": "Lepaskan semua"
+      }
     },
     "columns": {
       "add": "Tambah kolom",

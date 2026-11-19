@@ -19864,6 +19864,39 @@
   "issues.projects.empty": {
     "value": "No tasks in this project yet."
   },
+  "issues.projects.repos.label": {
+    "value": "Repositories"
+  },
+  "issues.projects.repos.main": {
+    "value": "Main"
+  },
+  "issues.projects.repos.makeMain": {
+    "value": "Make main"
+  },
+  "issues.projects.repos.open": {
+    "value": "Open on GitHub"
+  },
+  "issues.projects.repos.link": {
+    "value": "Link a repository"
+  },
+  "issues.projects.repos.dialogTitle": {
+    "value": "{{name}}'s repositories"
+  },
+  "issues.projects.repos.dialogDesc": {
+    "value": "Agents working on this project's tasks use these repositories. The first one is the main one."
+  },
+  "issues.projects.repos.notConnected": {
+    "value": "The workspace's GitHub isn't connected. Connect it in Connectors to pick repositories."
+  },
+  "issues.projects.repos.save": {
+    "value": {
+      "one": "Link {{count}} repository",
+      "other": "Link {{count}} repositories"
+    }
+  },
+  "issues.projects.repos.saveNone": {
+    "value": "Unlink all"
+  },
   "issues.columns.add": {
     "value": "Add column"
   },

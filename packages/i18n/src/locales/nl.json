@@ -8212,7 +8212,20 @@
       "delete": "Project verwijderen",
       "deleteTitle": "Project {{name}} verwijderen?",
       "deleteBody": "De taken blijven bestaan, zonder project.",
-      "empty": "Nog geen taken in dit project."
+      "empty": "Nog geen taken in dit project.",
+      "repos": {
+        "label": "Repository's",
+        "main": "Hoofdrepository",
+        "makeMain": "Hoofdrepository maken",
+        "open": "Openen op GitHub",
+        "link": "Repository koppelen",
+        "dialogTitle": "Repository's van {{name}}",
+        "dialogDesc": "Agents die aan de taken van dit project werken, gebruiken deze repository's. De eerste is de hoofdrepository.",
+        "notConnected": "De GitHub van de workspace is niet verbonden. Verbind hem bij Connectors om repository's te kiezen.",
+        "save_one": "{{count}} repository koppelen",
+        "save_other": "{{count}} repository's koppelen",
+        "saveNone": "Alles ontkoppelen"
+      }
     },
     "columns": {
       "add": "Kolom toevoegen",

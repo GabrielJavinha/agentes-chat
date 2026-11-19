@@ -8174,7 +8174,20 @@
       "delete": "Projekt löschen",
       "deleteTitle": "Projekt {{name}} löschen?",
       "deleteBody": "Die Aufgaben bleiben erhalten, ohne Projekt.",
-      "empty": "Noch keine Aufgaben in diesem Projekt."
+      "empty": "Noch keine Aufgaben in diesem Projekt.",
+      "repos": {
+        "label": "Repositorys",
+        "main": "Haupt-Repository",
+        "makeMain": "Zum Haupt-Repository machen",
+        "open": "Auf GitHub öffnen",
+        "link": "Repository verknüpfen",
+        "dialogTitle": "Repositorys von {{name}}",
+        "dialogDesc": "Agenten, die an den Aufgaben dieses Projekts arbeiten, nutzen diese Repositorys. Das erste ist das Haupt-Repository.",
+        "notConnected": "Das GitHub des Workspace ist nicht verbunden. Verbinde es unter Konnektoren, um Repositorys auszuwählen.",
+        "save_one": "{{count}} Repository verknüpfen",
+        "save_other": "{{count}} Repositorys verknüpfen",
+        "saveNone": "Alle entfernen"
+      }
     },
     "columns": {
       "add": "Spalte hinzufügen",

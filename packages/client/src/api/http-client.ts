@@ -1706,6 +1706,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<IssueProjectRef>(`${org(orgId)}/issue-projects/${enc(projectId)}`, { method: "PATCH", json: patch }),
       deleteProject: (orgId, projectId) =>
         request<void>(`${org(orgId)}/issue-projects/${enc(projectId)}`, { method: "DELETE" }),
+      setProjectRepositories: (orgId, projectId, repositories) =>
+        request<{ repositories: string[] }>(`${org(orgId)}/issue-projects/${enc(projectId)}/repositories`, {
+          method: "PUT",
+          json: { repositories },
+        }),
     },
     threads: {
       list: (orgId, filters = {}) => request<ThreadPage>(`${org(orgId)}/threads`, { query: threadQuery(filters) }),

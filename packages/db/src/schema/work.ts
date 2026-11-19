@@ -79,6 +79,32 @@ export const issueProjects = pgTable(
 );
 
 /**
+ * The GitHub repositories a project works on (ADR 0202), in order: the first is its main one. `repo` is `owner/name`
+ * as it was picked (never a whole account); one project holds a repository once, whatever its capitals.
+ */
+export const issueProjectRepositories = pgTable(
+  "issue_project_repositories",
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => Bun.randomUUIDv7()),
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    projectId: uuid()
+      .notNull()
+      .references(() => issueProjects.id, { onDelete: "cascade" }),
+    repo: text().notNull(),
+    position: integer().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("issue_project_repositories_repo").on(t.projectId, sql`lower(${t.repo})`),
+    index("issue_project_repositories_org_repo").on(t.orgId, sql`lower(${t.repo})`),
+  ],
+);
+
+/**
  * Native issues. Visible to the whole org, or like the conversation they came from (`channel_id`: a DM or a private
  * channel, set by "Transformar em issue" and by an agent's `create_issue` there). Acceptance criteria are a checklist;
  * who has it is in `issue_assignees`.

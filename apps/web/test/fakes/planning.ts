@@ -5,7 +5,8 @@
  *   `PUT …/issues/{id}/criteria/{criterionId} { done }`, `GET|POST …/issues/{id}/activity`,
  *   `POST …/issues/{id}/ask-agent { agentId }` (assigns, moves to "Em andamento", starts the run);
  *   board columns: `GET|POST …/issue-columns`, `PATCH|DELETE …/issue-columns/{id}`;
- *   projects: `GET|POST …/issue-projects`, `PATCH|DELETE …/issue-projects/{id}`, `GET …/issues?projectId`.
+ *   projects: `GET|POST …/issue-projects`, `PATCH|DELETE …/issue-projects/{id}`, `PUT …/issue-projects/{id}/repositories`,
+ *   `GET …/issues?projectId`.
  * - Routines: `GET|POST …/routines`, `POST …/routines/parse-schedule|parse-rule { phrase }` → cron, rule and
  *   description in the workspace time zone (phrases looked up in a table, standing in for the model),
  *   `PATCH …/routines/{id} { active }`, `POST …/routines/{id}/run`, `GET …/routines/{id}/runs`.
@@ -199,6 +200,8 @@ interface Store {
   columns: IssueColumn[];
   /** None until a test makes one, as a workspace that never used projects. */
   projects: IssueProjectRef[];
+  /** Each project's GitHub repositories, by its id (none: no repository). */
+  projectRepos: Map<string, string[]>;
   activity: Map<string, IssueActivity[]>;
   routines: Routine[];
   runs: Map<string, RoutineRun[]>;
@@ -220,6 +223,7 @@ export function createMockPlanning(
       issues: [],
       columns: defaultColumns(),
       projects: [],
+      projectRepos: new Map(),
       activity: new Map(),
       routines: [],
       runs: new Map(),
@@ -771,7 +775,10 @@ export function createMockPlanning(
         const byName = [...s.projects].sort(
           (a, b) => Number(a.archived) - Number(b.archived) || a.name.localeCompare(b.name),
         );
-        return clone({ projects: byName.map((p) => ({ ...p, open: open(p.id) })), unfiled: open(null) });
+        return clone({
+          projects: byName.map((p) => ({ ...p, open: open(p.id), repositories: s.projectRepos.get(p.id) ?? [] })),
+          unfiled: open(null),
+        });
       },
       createProject: async (orgId, input) => {
         record("issues.createProject", input);
@@ -784,7 +791,7 @@ export function createMockPlanning(
           archived: false,
         };
         s.projects.push(project);
-        return clone({ ...project, open: 0 });
+        return clone({ ...project, open: 0, repositories: [] });
       },
       updateProject: async (orgId, projectId, patch) => {
         record("issues.updateProject", projectId, patch);
@@ -801,6 +808,13 @@ export function createMockPlanning(
         const s = await store(orgId);
         s.projects = s.projects.filter((p) => p.id !== projectId);
         for (const i of s.issues) if (i.project?.id === projectId) i.project = null;
+      },
+      setProjectRepositories: async (orgId, projectId, repositories) => {
+        record("issues.setProjectRepositories", projectId, repositories);
+        const s = await store(orgId);
+        if (!s.projects.some((p) => p.id === projectId)) throw new MockNotFoundError("Projeto não encontrado.");
+        s.projectRepos.set(projectId, [...repositories]);
+        return { repositories: [...repositories] };
       },
       delete: async (orgId, id) => {
         record("issues.delete", orgId, id);

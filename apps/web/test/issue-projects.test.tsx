@@ -5,7 +5,7 @@ setupDom();
 
 import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
-import { createFakeApi, ORG_ID, seedState } from "./fake-api";
+import { createFakeApi, meWithRole, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
 
 afterEach(() => cleanup());
@@ -377,5 +377,55 @@ describe("Tarefas: projects", () => {
     await settle(5);
     expect(state.issuesView?.fields.project).toBe(false);
     expect(facts(cardOf(131))[1]).toBe("produto");
+  });
+});
+
+describe("Tarefas: a project's GitHub repositories (ADR 0202)", () => {
+  const listing = {
+    connected: true,
+    truncated: false,
+    accounts: [
+      {
+        login: "acme",
+        type: "Organization",
+        repositories: [
+          { fullName: "acme/api", owner: "acme", name: "api", private: true, updatedAt: null },
+          { fullName: "acme/web", owner: "acme", name: "web", private: false, updatedAt: null },
+        ],
+      },
+    ],
+  };
+  const reposLine = () => document.querySelector<HTMLElement>(".agp-repos");
+
+  test("an administrator links them in the order checked, and the first is marked the main one", async () => {
+    const { state, api, clinic } = await withProjects();
+    state.githubRepos = listing;
+    await go(api, `?project=${clinic.id}`);
+    await click(within(reposLine() as HTMLElement).getByRole("button", { name: "Vincular repositório" }));
+    await settle(5);
+    const dialog = screen().getByRole("dialog");
+    await click(within(dialog).getByRole("checkbox", { name: /^acme\/web/ }));
+    await click(within(dialog).getByRole("checkbox", { name: /^acme\/api/ }));
+    await click(within(dialog).getByRole("button", { name: "Vincular 2 repositórios" }));
+    await settle(8);
+    const saved = state.calls.filter((c) => c.method === "issues.setProjectRepositories");
+    expect(saved.map((c) => c.args)).toEqual([[clinic.id, ["acme/web", "acme/api"]]]);
+    const line = reposLine() as HTMLElement;
+    expect(line.textContent).toContain("acme/webPrincipalacme/api");
+    expect(within(line).getByRole("button", { name: "Mudar" })).toBeTruthy();
+  });
+
+  test("someone who isn't an administrator sees them but can't change them, and nothing where there are none", async () => {
+    const { state, api, clinic, bakery } = await withProjects();
+    state.githubRepos = listing;
+    await api.issues.setProjectRepositories(ORG_ID, clinic.id, ["acme/api"]);
+    meWithRole(state, ["post"]);
+    await go(api, `?project=${clinic.id}`);
+    const line = reposLine() as HTMLElement;
+    expect(line.textContent).toContain("acme/api");
+    expect(within(line).queryByRole("button", { name: "Mudar" })).toBeNull();
+    cleanup();
+    await go(api, `?project=${bakery.id}`);
+    expect(reposLine()).toBeNull();
   });
 });

@@ -16,9 +16,11 @@ import {
   listIssues,
   openTaskConversation,
   PROJECT_NAME_MAX,
+  PROJECT_REPOSITORIES_MAX,
   ROLE_COLORS,
   setCriterion,
   setIssueAudience,
+  setProjectRepositories,
   updateIssue,
   updateIssueColumn,
   updateIssueProject,
@@ -62,8 +64,12 @@ const ProjectRef = z
     archived: z.boolean().openapi({ description: "Offered to no new task. Its tasks keep it." }),
   })
   .openapi("IssueProjectRef");
+const ProjectRepositories = z
+  .array(z.string())
+  .openapi({ description: "The GitHub repositories it works on (`owner/name`), its main one first (ADR 0202)." });
 const Project = ProjectRef.extend({
   open: z.number().int().openapi({ description: "Open tasks in it that you see." }),
+  repositories: ProjectRepositories,
 }).openapi("IssueProject");
 const ProjectId = z
   .uuid()
@@ -525,6 +531,32 @@ export function issueRoutes(deps: AppDeps) {
       const { orgId, projectId } = c.req.valid("param");
       const project = await updateIssueProject(issues, c.get("user").id, orgId, projectId, c.req.valid("json"));
       return c.json(project, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/issue-projects/{projectId}/repositories",
+      tags,
+      security,
+      summary: "Replace the GitHub repositories a project works on (administrators); audited",
+      description:
+        "`issue_project.admin_only`: only an administrator links repositories, since agents on the project's tasks " +
+        "work in them. `issue_project.invalid_repository`: an entry isn't `owner/name` (a whole account isn't one).",
+      request: {
+        params: ProjectParams,
+        body: body(z.object({ repositories: z.array(z.string().max(220)).max(PROJECT_REPOSITORIES_MAX) })),
+      },
+      responses: { 200: json(z.object({ repositories: ProjectRepositories })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, projectId } = c.req.valid("param");
+      const { repositories } = c.req.valid("json");
+      return c.json(
+        { repositories: await setProjectRepositories(issues, c.get("user").id, orgId, projectId, repositories) },
+        200,
+      );
     },
   );
 

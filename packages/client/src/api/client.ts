@@ -1551,6 +1551,12 @@ export interface ApiClient {
     ): Promise<IssueProjectRef>;
     /** Its tasks stay, with no project. */
     deleteProject(orgId: string, projectId: string): Promise<void>;
+    /** Replaces the GitHub repositories it works on, its main one first (administrators, ADR 0202). */
+    setProjectRepositories(
+      orgId: string,
+      projectId: string,
+      repositories: string[],
+    ): Promise<{ repositories: string[] }>;
   };
   /** Threads (ADR 0029): the Threads page, a thread from a range, moving it, closing and archiving. */
   threads: {

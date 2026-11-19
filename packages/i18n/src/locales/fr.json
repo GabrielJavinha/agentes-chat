@@ -8470,7 +8470,21 @@
       "delete": "Supprimer le projet",
       "deleteTitle": "Supprimer le projet {{name}} ?",
       "deleteBody": "Ses tâches restent, sans projet.",
-      "empty": "Aucune tâche dans ce projet pour l'instant."
+      "empty": "Aucune tâche dans ce projet pour l'instant.",
+      "repos": {
+        "label": "Dépôts",
+        "main": "Principal",
+        "makeMain": "Définir comme principal",
+        "open": "Ouvrir sur GitHub",
+        "link": "Lier un dépôt",
+        "dialogTitle": "Dépôts de {{name}}",
+        "dialogDesc": "Les agents qui travaillent sur les tâches de ce projet utilisent ces dépôts. Le premier est le principal.",
+        "notConnected": "Le GitHub de l’espace de travail n’est pas connecté. Connectez-le dans Connecteurs pour choisir des dépôts.",
+        "save_one": "Lier {{count}} dépôt",
+        "save_many": "Lier {{count}} dépôts",
+        "save_other": "Lier {{count}} dépôts",
+        "saveNone": "Tout délier"
+      }
     },
     "columns": {
       "add": "Ajouter une colonne",

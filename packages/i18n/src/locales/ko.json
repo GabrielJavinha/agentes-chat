@@ -7864,7 +7864,19 @@
       "delete": "프로젝트 삭제",
       "deleteTitle": "{{name}} 프로젝트를 삭제할까요?",
       "deleteBody": "작업은 프로젝트 없이 그대로 남아요.",
-      "empty": "이 프로젝트에는 아직 작업이 없어요."
+      "empty": "이 프로젝트에는 아직 작업이 없어요.",
+      "repos": {
+        "label": "저장소",
+        "main": "기본",
+        "makeMain": "기본으로 지정",
+        "open": "GitHub에서 열기",
+        "link": "저장소 연결",
+        "dialogTitle": "{{name}}의 저장소",
+        "dialogDesc": "이 프로젝트의 작업을 하는 에이전트는 이 저장소들을 사용합니다. 첫 번째가 기본 저장소입니다.",
+        "notConnected": "워크스페이스의 GitHub가 연결되어 있지 않습니다. 커넥터에서 연결하면 저장소를 고를 수 있습니다.",
+        "save_other": "저장소 {{count}}개 연결",
+        "saveNone": "모두 연결 해제"
+      }
     },
     "columns": {
       "add": "열 추가",

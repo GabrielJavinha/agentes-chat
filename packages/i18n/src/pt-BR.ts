@@ -8596,6 +8596,21 @@ export const ptBR = {
       deleteTitle: "Excluir o projeto {{name}}?",
       deleteBody: "As tarefas dele continuam, sem projeto.",
       empty: "Nenhuma tarefa neste projeto ainda.",
+      /** The GitHub repositories a project works on (ADR 0202): the line under a project board's title and its dialog. */
+      repos: {
+        label: "Repositórios",
+        main: "Principal",
+        makeMain: "Tornar principal",
+        open: "Abrir no GitHub",
+        link: "Vincular repositório",
+        dialogTitle: "Repositórios de {{name}}",
+        dialogDesc:
+          "Os agentes que trabalham nas tarefas deste projeto usam estes repositórios. O primeiro é o principal.",
+        notConnected: "O GitHub do workspace não está conectado. Conecte em Conectores para escolher repositórios.",
+        save_one: "Vincular {{count}} repositório",
+        save_other: "Vincular {{count}} repositórios",
+        saveNone: "Desvincular todos",
+      },
     },
     columns: {
       add: "Adicionar coluna",

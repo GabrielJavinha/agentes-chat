@@ -8420,7 +8420,21 @@
       "delete": "Eliminar proyecto",
       "deleteTitle": "¿Eliminar el proyecto {{name}}?",
       "deleteBody": "Sus tareas se quedan, sin proyecto.",
-      "empty": "Todavía no hay tareas en este proyecto."
+      "empty": "Todavía no hay tareas en este proyecto.",
+      "repos": {
+        "label": "Repositorios",
+        "main": "Principal",
+        "makeMain": "Hacer principal",
+        "open": "Abrir en GitHub",
+        "link": "Vincular repositorio",
+        "dialogTitle": "Repositorios de {{name}}",
+        "dialogDesc": "Los agentes que trabajan en las tareas de este proyecto usan estos repositorios. El primero es el principal.",
+        "notConnected": "El GitHub del espacio de trabajo no está conectado. Conéctalo en Conectores para elegir repositorios.",
+        "save_one": "Vincular {{count}} repositorio",
+        "save_many": "Vincular {{count}} repositorios",
+        "save_other": "Vincular {{count}} repositorios",
+        "saveNone": "Desvincular todos"
+      }
     },
     "columns": {
       "add": "Agregar columna",

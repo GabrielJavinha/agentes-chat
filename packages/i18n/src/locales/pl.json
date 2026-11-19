@@ -8754,7 +8754,22 @@
       "delete": "Usuń projekt",
       "deleteTitle": "Usunąć projekt {{name}}?",
       "deleteBody": "Jego zadania zostają, bez projektu.",
-      "empty": "W tym projekcie nie ma jeszcze zadań."
+      "empty": "W tym projekcie nie ma jeszcze zadań.",
+      "repos": {
+        "label": "Repozytoria",
+        "main": "Główne",
+        "makeMain": "Ustaw jako główne",
+        "open": "Otwórz w GitHub",
+        "link": "Powiąż repozytorium",
+        "dialogTitle": "Repozytoria projektu {{name}}",
+        "dialogDesc": "Agenci pracujący nad zadaniami tego projektu używają tych repozytoriów. Pierwsze jest główne.",
+        "notConnected": "GitHub obszaru roboczego nie jest połączony. Połącz go w Konektorach, aby wybrać repozytoria.",
+        "save_one": "Powiąż {{count}} repozytorium",
+        "save_few": "Powiąż {{count}} repozytoria",
+        "save_many": "Powiąż {{count}} repozytoriów",
+        "save_other": "Powiąż {{count}} repozytorium",
+        "saveNone": "Odłącz wszystkie"
+      }
     },
     "columns": {
       "add": "Dodaj kolumnę",

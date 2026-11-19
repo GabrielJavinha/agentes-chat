@@ -7904,7 +7904,19 @@
       "delete": "删除项目",
       "deleteTitle": "删除项目「{{name}}」？",
       "deleteBody": "其中的任务会保留，不再属于任何项目。",
-      "empty": "这个项目里还没有任务。"
+      "empty": "这个项目里还没有任务。",
+      "repos": {
+        "label": "仓库",
+        "main": "主仓库",
+        "makeMain": "设为主仓库",
+        "open": "在 GitHub 上打开",
+        "link": "关联仓库",
+        "dialogTitle": "{{name}} 的仓库",
+        "dialogDesc": "处理此项目任务的智能体会使用这些仓库。第一个是主仓库。",
+        "notConnected": "工作区的 GitHub 尚未连接。在连接器中连接后即可选择仓库。",
+        "save_other": "关联 {{count}} 个仓库",
+        "saveNone": "全部取消关联"
+      }
     },
     "columns": {
       "add": "添加列",

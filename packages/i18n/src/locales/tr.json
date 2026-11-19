@@ -8133,7 +8133,20 @@
       "delete": "Projeyi sil",
       "deleteTitle": "{{name}} projesi silinsin mi?",
       "deleteBody": "Görevleri projesiz olarak kalır.",
-      "empty": "Bu projede henüz görev yok."
+      "empty": "Bu projede henüz görev yok.",
+      "repos": {
+        "label": "Depolar",
+        "main": "Ana depo",
+        "makeMain": "Ana depo yap",
+        "open": "GitHub'da aç",
+        "link": "Depo bağla",
+        "dialogTitle": "{{name}} depoları",
+        "dialogDesc": "Bu projenin görevleri üzerinde çalışan ajanlar bu depoları kullanır. İlki ana depodur.",
+        "notConnected": "Çalışma alanının GitHub'ı bağlı değil. Depo seçmek için Bağlayıcılar'dan bağlayın.",
+        "save_one": "{{count}} depo bağla",
+        "save_other": "{{count}} depo bağla",
+        "saveNone": "Tümünün bağlantısını kaldır"
+      }
     },
     "columns": {
       "add": "Sütun ekle",

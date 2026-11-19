@@ -115,7 +115,7 @@ import { AssigneeFaces } from "./IssueAssignees";
 import { AddColumnDialog, Board, type CardState, type IssueGroup, useMoveIssue, usePatchIssue } from "./IssueBoard";
 import { IssueDeleteProvider, useIssueDeleting } from "./IssueDelete";
 import { IssueDialog } from "./IssuePage";
-import { DeleteProjectDialog, ProjectChip, ProjectDialog } from "./IssueProjects";
+import { DeleteProjectDialog, ProjectChip, ProjectDialog, ProjectRepositories } from "./IssueProjects";
 import { DisplayButton, IssueFilters, PRIORITY_ICON } from "./IssuesToolbar";
 import { type CardMove, type DropResult, type IssueDrag, useIssueDrag } from "./issue-drag";
 import { NewIssueDialog } from "./NewIssueDialog";
@@ -271,6 +271,7 @@ export function IssuesPage() {
               )
             }
           />
+          {project && <ProjectRepositories project={project} />}
           <StalledNow issues={all} onOpen={toggle} />
           <Toolbar
             label={t("issues.filters")}

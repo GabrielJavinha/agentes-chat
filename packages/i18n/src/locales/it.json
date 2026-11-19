@@ -8481,7 +8481,21 @@
       "delete": "Elimina progetto",
       "deleteTitle": "Eliminare il progetto {{name}}?",
       "deleteBody": "Le sue attività restano, senza progetto.",
-      "empty": "Ancora nessuna attività in questo progetto."
+      "empty": "Ancora nessuna attività in questo progetto.",
+      "repos": {
+        "label": "Repository",
+        "main": "Principale",
+        "makeMain": "Rendi principale",
+        "open": "Apri su GitHub",
+        "link": "Collega un repository",
+        "dialogTitle": "Repository di {{name}}",
+        "dialogDesc": "Gli agenti che lavorano alle attività di questo progetto usano questi repository. Il primo è quello principale.",
+        "notConnected": "Il GitHub dello spazio di lavoro non è collegato. Collegalo in Connettori per scegliere i repository.",
+        "save_one": "Collega {{count}} repository",
+        "save_many": "Collega {{count}} repository",
+        "save_other": "Collega {{count}} repository",
+        "saveNone": "Scollega tutti"
+      }
     },
     "columns": {
       "add": "Aggiungi colonna",

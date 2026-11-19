@@ -5085,6 +5085,16 @@ export function useIssueProjectAction(orgId: string) {
   });
 }
 
+/** Replaces a project's GitHub repositories, its main one first (administrators, ADR 0202). */
+export function useSetProjectRepositories(orgId: string, projectId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (repositories: string[]) => api.issues.setProjectRepositories(orgId, projectId, repositories),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.issueProjects(orgId) }),
+  });
+}
+
 // ── Routines ─────────────────────────────────────────────────────────────────
 
 export const routinesQuery = (api: ApiClient, orgId: string) =>

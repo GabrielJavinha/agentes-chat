@@ -2133,15 +2133,29 @@
     {
       "idx": 306,
       "version": "7",
-      "when": 1795100282622,
-      "tag": "0309_project_repositories",
+      "when": 1795215601286,
+      "tag": "0309_live_activity_devices",
       "breakpoints": true
     },
     {
       "idx": 307,
       "version": "7",
-      "when": 1795107666915,
-      "tag": "0310_project_github_import",
+      "when": 1795219383867,
+      "tag": "0310_move_learned_sections",
+      "breakpoints": true
+    },
+    {
+      "idx": 308,
+      "version": "7",
+      "when": 1795277328967,
+      "tag": "0311_project_repositories",
+      "breakpoints": true
+    },
+    {
+      "idx": 309,
+      "version": "7",
+      "when": 1795277334730,
+      "tag": "0312_project_github_import",
       "breakpoints": true
     }
   ]

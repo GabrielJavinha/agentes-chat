@@ -1539,7 +1539,7 @@
     "value": "Now your password."
   },
   "auth.flow.wrong": {
-    "value": "Hmm, that password didn't match."
+    "value": "That password didn't match."
   },
   "auth.flow.social": {
     "value": "You sign in with {{providers}}."
@@ -1845,7 +1845,7 @@
     "value": "Request sent"
   },
   "invite.askNewFailed": {
-    "value": "We couldn't ask from here: this link may have been replaced by a newer invitation or cancelled. Look for the latest invitation email, or ask whoever invited you."
+    "value": "We couldn't ask from here. Someone may have cancelled this link or sent a newer invitation. Look for the latest invitation email, or ask whoever invited you."
   },
   "invite.from": {
     "value": "Invited by {{name}}"
@@ -5061,7 +5061,7 @@
     "value": "You approve for"
   },
   "approvalCover.coveringSubtitle": {
-    "value": "What is asked of these people reaches you too, and you decide in their name. Never what you asked for."
+    "value": "Requests to these people reach you too, and you decide in their name, except on requests you made."
   },
   "approvalCover.coveringWhileOut": {
     "value": "When they're out"
@@ -5451,7 +5451,7 @@
     "value": "We sent a link to {{email}}. Your email changes when you open it."
   },
   "shell.email.changed": {
-    "value": "Done: you now sign in with {{email}}."
+    "value": "You now sign in with {{email}}."
   },
   "shell.email.same": {
     "value": "That's already your email."
@@ -6706,6 +6706,12 @@
   },
   "channel.removeFile": {
     "value": "Remove {{name}}"
+  },
+  "channel.dropFileTitle": {
+    "value": "Drop to attach"
+  },
+  "channel.dropFileNote": {
+    "value": "Files stay in this conversation’s draft until you send them."
   },
   "channel.tooManyFiles": {
     "value": "Up to {{max}} files per message."
@@ -8042,11 +8048,11 @@
   "teamWeek.approvals.action": {
     "value": "Review and approve"
   },
-  "teamWeek.approvals.hide": {
-    "value": "Hide"
-  },
   "teamWeek.budget.title": {
     "value": "{{name}}'s budget: {{from}} → {{to}}"
+  },
+  "teamWeek.budget.item": {
+    "value": "Budget: {{from}} → {{to}}"
   },
   "teamWeek.budget.line": {
     "value": {
@@ -8056,6 +8062,9 @@
   },
   "teamWeek.channel.title": {
     "value": "Put {{name}} in #{{channel}}"
+  },
+  "teamWeek.channel.item": {
+    "value": "Add to #{{channel}}"
   },
   "teamWeek.channel.line": {
     "value": "{{name}} is in no channel, so nobody talked to it all week."
@@ -8081,6 +8090,9 @@
   "teamWeek.routine.title": {
     "value": "{{name}}'s routine every day at {{time}}"
   },
+  "teamWeek.routine.item": {
+    "value": "A routine every day at {{time}}"
+  },
   "teamWeek.routine.line": {
     "value": {
       "one": "You asked for this {{count}} time this week: “{{text}}”",
@@ -8101,6 +8113,21 @@
   },
   "teamWeek.howto.action": {
     "value": "Make it a skill"
+  },
+  "teamWeek.howto.uses": {
+    "value": "Used {{uses}}×"
+  },
+  "teamWeek.howto.group": {
+    "value": {
+      "one": "{{name}} learned a way of working",
+      "other": "{{name}} learned {{count}} ways of working"
+    }
+  },
+  "teamWeek.howto.applyAll": {
+    "value": {
+      "one": "Make it a skill",
+      "other": "Make {{count}} skills"
+    }
   },
   "teamWeek.howto.done": {
     "value": "Confirmed"
@@ -8177,6 +8204,9 @@
   "teamWeek.retire.title": {
     "value": "Archive {{name}}"
   },
+  "teamWeek.retire.item": {
+    "value": "Archive"
+  },
   "teamWeek.retire.line": {
     "value": "No work in 4 weeks, no routine and no open task."
   },
@@ -8185,6 +8215,9 @@
   },
   "teamWeek.model.title": {
     "value": "{{name}} can use {{to}}."
+  },
+  "teamWeek.model.item": {
+    "value": "Can use {{to}}"
   },
   "teamWeek.model.line": {
     "value": "It uses {{from}} today."
@@ -8220,7 +8253,7 @@
     "value": "Not now"
   },
   "teamWeek.dismissed": {
-    "value": "Nothing changes for now. Ask anything about the week right here."
+    "value": "Nothing changes for now. Ask anything about the week here."
   },
   "teamWeek.change": {
     "value": "Change"
@@ -8351,7 +8384,7 @@
     "value": "OpenCode can't think on this computer. Connect an OpenCode key on {{name}}'s page."
   },
   "noAi.card.connected": {
-    "value": "Done: {{name}} has an AI now."
+    "value": "{{name}} has an AI now."
   },
   "noAi.card.answerNow": {
     "value": "Answer now"
@@ -8438,7 +8471,7 @@
     "value": "I'll answer here once an admin sorts out the agentes.chat plan."
   },
   "noAi.kept.plan": {
-    "value": "The plan brings the agents' computer, always on. The AI is the one you already pay for: Claude, ChatGPT and more, or an API key."
+    "value": "The plan brings the agents' computer. The AI is the one you already pay for: Claude, ChatGPT and more, or an API key."
   },
   "noAi.kept.activeTitle": {
     "value": "Plan active"
@@ -8834,7 +8867,7 @@
     "value": "Test models"
   },
   "connectAi.key.savedUnchecked": {
-    "value": "Saved, but {{provider}} didn't answer, so the key couldn't be checked. If it fails, the chat says why."
+    "value": "Saved, but {{provider}} didn't answer, so we couldn't check the key. If it fails, the chat says why."
   },
   "connectAi.key.closed": {
     "value": "API keys open with the workspace's agentes.chat plan."
@@ -9144,7 +9177,7 @@
     "value": "Work nobody asked for"
   },
   "brakes.subtitle": {
-    "value": "What it starts on its own, from a routine, an alert or another agent. What a person asks is never held."
+    "value": "What it starts on its own, from a routine, an alert or another agent."
   },
   "brakes.costly": {
     "value": "Ask before costly work"
@@ -9628,14 +9661,14 @@
     "female": "Let {{person}} talk to her"
   },
   "reach.allowed": {
-    "value": "Done: {{person}} can now talk to {{name}}."
+    "value": "{{person}} can now talk to {{name}}."
   },
   "reach.allowMe": {
     "value": "Let me talk to him",
     "female": "Let me talk to her"
   },
   "reach.allowedMe": {
-    "value": "Done: you can now talk to {{name}}."
+    "value": "You can now talk to {{name}}."
   },
   "reach.mailLossTitle": {
     "value": "Remove mailbox access?"
@@ -10863,6 +10896,33 @@
   },
   "adminAsk.sent": {
     "value": "Sent to whoever can do it."
+  },
+  "accountRef.label": {
+    "value": "{{name}} account"
+  },
+  "accountRef.card": {
+    "value": "About the {{name}} account"
+  },
+  "accountRef.mine": {
+    "value": "Your account"
+  },
+  "accountRef.of": {
+    "value": "{{name}}'s account"
+  },
+  "accountRef.on": {
+    "value": "On {{computer}}"
+  },
+  "accountRef.gone": {
+    "value": "This account isn't in the workspace anymore."
+  },
+  "accountSwitch.limit": {
+    "value": "Went on with the <to/> account because the <from/> account hit its limit"
+  },
+  "accountSwitch.line": {
+    "value": "Went on with the <to/> account because the <from/> account is near its limit"
+  },
+  "accountSwitch.extra": {
+    "value": "Went on with the <to/> account because the <from/> account would go into paid extra usage"
   },
   "channelRefs.list": {
     "value": "Channels"
@@ -14344,8 +14404,11 @@
   "agentPage.work.brain.speedText": {
     "value": "Answers faster in conversations and uses the plan 2.5× as fast. Routines and long tasks stay at standard speed."
   },
+  "agentPage.work.brain.modelLine.fable": {
+    "value": "The most capable. Uses up the plan much faster."
+  },
   "agentPage.work.brain.modelLine.opus": {
-    "value": "The most capable. Uses up the plan faster."
+    "value": "Very capable. Uses up the plan faster."
   },
   "agentPage.work.brain.modelLine.sonnet": {
     "value": "Balanced. Good for almost everything."
@@ -15472,7 +15535,7 @@
     "value": "Rules people gave"
   },
   "agentPage.memory.rulesNote": {
-    "value": "Followed in all its work for whoever gave each one, wherever the work comes from. Rules from its owner or an admin hold for everyone."
+    "value": "Each rule holds for whoever gave it, wherever the work comes from. Rules from its owner or an admin hold for everyone."
   },
   "agentPage.memory.rulesNoteRightHand": {
     "value": "Rules you give in your DM hold only for you. Only you see them."
@@ -15490,7 +15553,7 @@
     "value": "How {{name}} works"
   },
   "agentPage.memory.playbookNote": {
-    "value": "Ways of working it keeps for itself. They don't show in the chat. What it picked up from outside and never used again leaves on its own and stays in Archived."
+    "value": "Ways of working it keeps for itself. They don't show in the chat. What it picked up from outside and never used again moves to Archived on its own."
   },
   "agentPage.memory.details": {
     "value": "Technical details"
@@ -15739,6 +15802,9 @@
   "agentPage.activity.errors.computer_timeout": {
     "value": "The computer took too long to answer."
   },
+  "agentPage.activity.errors.disk_full": {
+    "value": "This computer's disk is full. Delete files you no longer need on it (an agent can do it once there's a little room), or ask an admin to free space."
+  },
   "agentPage.activity.errors.cli_failed": {
     "value": "The {{brain}} program stopped with an error: {{detail}}"
   },
@@ -15750,6 +15816,9 @@
   },
   "agentPage.activity.errors.cli_sandbox": {
     "value": "The {{brain}} program can't start its sandbox on this computer. Choose another AI in the agent's settings."
+  },
+  "agentPage.activity.errors.cli_system": {
+    "value": "The {{brain}} program doesn't run on this computer's system yet. Choose another AI in the agent's settings."
   },
   "agentPage.activity.errors.account_missing": {
     "value": "The account chosen for this agent isn't on its computer anymore. Choose another one in the agent's settings, or add it again."
@@ -16784,7 +16853,7 @@
     "value": "Your work apps"
   },
   "agentSetup.firstRun.apps.desc": {
-    "value": "The ones the team you just made would use come first. Reading never changes anything, and sending, deleting and paying ask for your approval."
+    "value": "Reading never changes anything. Sending, deleting and paying ask for your approval."
   },
   "agentSetup.firstRun.apps.connect": {
     "value": "Connect"
@@ -17436,6 +17505,9 @@
   },
   "newAgent.model": {
     "value": "Model"
+  },
+  "newAgent.modelDesc.fable": {
+    "value": "The most capable, for the hardest work"
   },
   "newAgent.modelDesc.sonnet": {
     "value": "Recommended for most"
@@ -18673,7 +18745,7 @@
   },
   "members.suggest.lead": {
     "value": {
-      "one": "{{names}} invites people here. Suggest someone: the suggestion arrives and is approved with one click.",
+      "one": "{{names}} invites people here. Suggest someone: they get it and approve with one click.",
       "other": "{{names}} invite people here. Suggest someone: they get it and approve with one click."
     }
   },
@@ -18747,7 +18819,7 @@
     "value": "Welcome to {{org}}, {{name}}"
   },
   "members.arrival.lead": {
-    "value": "Here the team and the agents work together: write in #{{channel}} or call an agent by name."
+    "value": "Write in #{{channel}} or call an agent by name."
   },
   "members.arrival.alsoIn": {
     "value": "You're also in {{channels}}."
@@ -22117,6 +22189,9 @@
   "routines.code.computer_timeout": {
     "value": "The computer took too long to answer"
   },
+  "routines.code.disk_full": {
+    "value": "The computer's disk was full"
+  },
   "routines.code.cli_failed": {
     "value": "The AI program on the computer stopped with an error"
   },
@@ -25265,6 +25340,21 @@
       "other": "{{count}} agents use it"
     }
   },
+  "skills.agents.title": {
+    "value": "Agents with this skill"
+  },
+  "skills.agents.none": {
+    "value": "No agent yet."
+  },
+  "skills.agents.choose": {
+    "value": "Choose agents"
+  },
+  "skills.agents.dialogTitle": {
+    "value": "Agents with {{name}}"
+  },
+  "skills.agents.dialogText": {
+    "value": "Each agent turned on uses it whenever a task calls for it."
+  },
   "skills.updated": {
     "value": "updated {{when}}"
   },
@@ -26679,7 +26769,7 @@
     "value": "Couldn't send the audio."
   },
   "voice.limit": {
-    "value": "That's a lot of audio for today. Write here and try again tomorrow."
+    "value": "Today's audio limit is used up. Write here, or try again tomorrow."
   },
   "voice.micBlocked": {
     "value": "The microphone is blocked"
@@ -28281,10 +28371,10 @@
     "value": "Set for the folder {{folder}}"
   },
   "wiki.audienceFolderSaved": {
-    "value": "Done. The folder's audience was updated."
+    "value": "Folder access updated."
   },
   "wiki.audienceFolderOpened": {
-    "value": "Done. The folder has no limit now."
+    "value": "The folder has no limit now."
   },
   "wiki.audienceRootTitle": {
     "value": "Access to the whole wiki"
@@ -28399,8 +28489,8 @@
   },
   "wiki.bulk.agentsSaved": {
     "value": {
-      "one": "Done. {{count}} page updated.",
-      "other": "Done. {{count}} pages updated."
+      "one": "{{count}} page updated.",
+      "other": "{{count}} pages updated."
     }
   },
   "wiki.trash.title": {
@@ -28497,10 +28587,10 @@
     "value": "Nobody by that name."
   },
   "wiki.audienceSaved": {
-    "value": "Done. The access was updated."
+    "value": "Access updated."
   },
   "wiki.audienceOpened": {
-    "value": "Done. Everyone can see and edit it."
+    "value": "Everyone can see and edit it."
   },
   "wiki.noAccessTitle": {
     "value": "You don't have access to this page"
@@ -29616,7 +29706,7 @@
     "value": "New work starts when the computer has free memory. People go first. Agents mentioned together start one at a time."
   },
   "queue.spill.title": {
-    "value": "More computers, shorter line"
+    "value": "Your computers"
   },
   "queue.spill.text": {
     "value": "When this computer is full, replies to you can start on one of yours. Long work and the agents' files stay here."
@@ -35100,6 +35190,9 @@
   "toolNames.label.find_agent": {
     "value": "Find agent"
   },
+  "toolNames.label.read_agent": {
+    "value": "Read agent setup"
+  },
   "toolNames.label.ask_user": {
     "value": "Ask a question"
   },
@@ -37164,6 +37257,87 @@
   "files.video.open": {
     "value": "Open"
   },
+  "files.comments.title": {
+    "value": "Comments"
+  },
+  "files.comments.resolve": {
+    "value": "Resolve"
+  },
+  "files.comments.reopen": {
+    "value": "Reopen"
+  },
+  "files.comments.resolvedBy": {
+    "value": "Resolved by {{name}} · {{time}}"
+  },
+  "files.comments.resolvedCount": {
+    "value": {
+      "one": "{{count}} resolved",
+      "other": "{{count}} resolved"
+    }
+  },
+  "files.comments.showResolved": {
+    "value": "Show resolved"
+  },
+  "files.comments.hideResolved": {
+    "value": "Hide resolved"
+  },
+  "files.comments.fromVersion": {
+    "value": "From version {{version}}"
+  },
+  "files.comments.peekOpen": {
+    "value": "Click to open in the conversation"
+  },
+  "files.comments.markAt": {
+    "value": "Comment {{n}} at {{time}}, by {{name}}"
+  },
+  "files.comments.page": {
+    "value": "Page {{page}}"
+  },
+  "files.comments.pageOf": {
+    "value": "{{page}} of {{count}}"
+  },
+  "files.comments.pdfFailed": {
+    "value": "This PDF can't be shown here. Download it to open it."
+  },
+  "files.comments.loadFailed": {
+    "value": "This image can't be shown here."
+  },
+  "files.comments.hint.image": {
+    "value": "Click to mark a point or drag to mark an area"
+  },
+  "files.comments.hint.video": {
+    "value": "Click the video to comment at this moment, or drag to mark an area"
+  },
+  "files.comments.hint.pdf": {
+    "value": "Click a page to mark a point or drag to mark an area"
+  },
+  "files.comments.line.image": {
+    "value": {
+      "one": "{{count}} comment on the image",
+      "other": "{{count}} comments on the image"
+    }
+  },
+  "files.comments.line.video": {
+    "value": {
+      "one": "{{count}} comment on the video",
+      "other": "{{count}} comments on the video"
+    }
+  },
+  "files.comments.line.pdf": {
+    "value": {
+      "one": "{{count}} comment on the PDF",
+      "other": "{{count}} comments on the PDF"
+    }
+  },
+  "files.comments.write.image": {
+    "value": "Write about the image…"
+  },
+  "files.comments.write.video": {
+    "value": "Write about the video…"
+  },
+  "files.comments.write.pdf": {
+    "value": "Write about the PDF…"
+  },
   "files.zoom.toolbar": {
     "value": "Zoom"
   },
@@ -37289,6 +37463,9 @@
   },
   "errors.said.checkAddress": {
     "value": "Check the address and try again."
+  },
+  "errors.said.privateNetwork": {
+    "value": "This address is on a private network. Use a public address, or on a self-hosted server allow it with `OUTBOUND_ALLOW_CIDRS`."
   },
   "errors.said.tooLong": {
     "value": "That's too long. Shorten it and try again."
@@ -37997,6 +38174,9 @@
   },
   "errors.device.spillOwnerOnly": {
     "value": "Only the person who connected this computer can let replies think on it. You can turn it off."
+  },
+  "errors.device.tasksOwnerOnly": {
+    "value": "Only the person who connected this computer can change how many tasks it runs at once."
   },
   "errors.device.notHome": {
     "value": "Agents live on the workspace computer and use this one when they name it."
@@ -39239,6 +39419,15 @@
       "other": "{{count}} of {{max}} tasks running"
     }
   },
+  "devices.line.tasksChange": {
+    "value": "Tasks at once here: {{max}}. Change it below."
+  },
+  "devices.line.tasksOwner": {
+    "value": "Tasks at once here: {{max}}. The person who connected it can change that."
+  },
+  "devices.line.tasksUpdate": {
+    "value": "Tasks at once here: {{max}}. Update its app to change that from here."
+  },
   "devices.line.offline": {
     "value": "Agents wait for it to come back."
   },
@@ -40212,7 +40401,7 @@
     "value": "Repair the test helper"
   },
   "devices.iphone.repairHint": {
-    "value": "The Mac stops the test helper and builds it again with its Xcode, in a few minutes. For taps that still fail once both are on."
+    "value": "Use it when taps still fail with both on. The Mac stops the test helper and builds it again with its Xcode, in a few minutes."
   },
   "devices.iphone.tooOld": {
     "value": "{{name}} runs iOS {{version}}, and agents need iOS 17 or newer. Update it if it can, or plug in a newer iPhone."
@@ -42510,7 +42699,7 @@
     "value": "What is sent"
   },
   "settings.telemetry.dialogText": {
-    "value": "Once a day. This is the next report, exactly."
+    "value": "Sent once a day. This is exactly the next report."
   },
   "settings.tileState.members": {
     "value": {
@@ -50110,7 +50299,7 @@
     "value": "Tell what you do and {{name}} builds it"
   },
   "teamPlan.templates.tailor": {
-    "value": "Later, just ask me to fit it to your business."
+    "value": "Later, ask me to fit it to your business."
   },
   "teamPlan.templates.titlePersonal": {
     "value": "Your agents"
@@ -50131,7 +50320,7 @@
     "value": "Tell what you need and {{name}} sets them up"
   },
   "teamPlan.templates.tailorPersonal": {
-    "value": "Later, just ask me to fit them to your routine."
+    "value": "Later, ask me to fit them to your routine."
   },
   "teamPlan.weekly.name": {
     "value": "The team's week"
@@ -52341,6 +52530,15 @@
   "live.conversation.title.file": {
     "value": "File conversation"
   },
+  "live.conversation.title.image": {
+    "value": "Image conversation"
+  },
+  "live.conversation.title.video": {
+    "value": "Video conversation"
+  },
+  "live.conversation.title.pdf": {
+    "value": "PDF conversation"
+  },
   "live.conversation.placeholder.canvas": {
     "value": "Write about this canvas · use @ to call an agent"
   },
@@ -52356,6 +52554,15 @@
   "live.conversation.placeholder.file": {
     "value": "Write about this file · use @ to call an agent"
   },
+  "live.conversation.placeholder.image": {
+    "value": "Write about this image · use @ to call an agent"
+  },
+  "live.conversation.placeholder.video": {
+    "value": "Write about this video · use @ to call an agent"
+  },
+  "live.conversation.placeholder.pdf": {
+    "value": "Write about this PDF · use @ to call an agent"
+  },
   "live.conversation.this.canvas": {
     "value": "this canvas"
   },
@@ -52368,6 +52575,15 @@
   "live.conversation.this.document": {
     "value": "this document"
   },
+  "live.conversation.this.image": {
+    "value": "this image"
+  },
+  "live.conversation.this.video": {
+    "value": "this video"
+  },
+  "live.conversation.this.pdf": {
+    "value": "this PDF"
+  },
   "live.conversation.origin.from": {
     "value": "<0>{{name}}</0> made {{what}} from the <1>{{place}}</1>"
   },
@@ -52376,6 +52592,12 @@
   },
   "live.conversation.origin.imported": {
     "value": "Imported from <1>{{file}}</1> by {{name}}"
+  },
+  "live.conversation.origin.sentIn": {
+    "value": "<0>{{name}}</0> sent {{what}} in the <1>{{place}}</1>"
+  },
+  "live.conversation.origin.sent": {
+    "value": "<0>{{name}}</0> sent {{what}}"
   },
   "live.conversation.about.range": {
     "value": "About {{range}} in {{sheet}}"
@@ -52394,6 +52616,51 @@
   },
   "live.conversation.about.other": {
     "value": "About {{label}}"
+  },
+  "live.conversation.about.imageArea": {
+    "value": "About area {{n}} of the image"
+  },
+  "live.conversation.about.imagePoint": {
+    "value": "About point {{n}} of the image"
+  },
+  "live.conversation.about.videoAt": {
+    "value": "About {{time}} of the video"
+  },
+  "live.conversation.about.pdfPage": {
+    "value": "About page {{page}} of the PDF"
+  },
+  "live.conversation.about.image": {
+    "value": "About the image"
+  },
+  "live.conversation.about.video": {
+    "value": "About the video"
+  },
+  "live.conversation.about.pdf": {
+    "value": "About the PDF"
+  },
+  "live.conversation.what.area": {
+    "value": "Area {{n}}"
+  },
+  "live.conversation.what.point": {
+    "value": "Point {{n}}"
+  },
+  "live.conversation.what.anArea": {
+    "value": "An area"
+  },
+  "live.conversation.what.aPoint": {
+    "value": "A point"
+  },
+  "live.conversation.what.page": {
+    "value": "Page {{page}}"
+  },
+  "live.conversation.where.image": {
+    "value": "on the image"
+  },
+  "live.conversation.where.video": {
+    "value": "on the video"
+  },
+  "live.conversation.where.pdf": {
+    "value": "on the PDF"
   },
   "live.conversation.drop": {
     "value": "Don't send the selection"

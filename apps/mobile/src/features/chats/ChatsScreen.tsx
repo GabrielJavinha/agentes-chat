@@ -5,12 +5,12 @@ import { isRightHand, rightHandOf } from "@agenteschat/client/lib/right-hand";
 import { WORKING_POLL_MS } from "@agenteschat/client/lib/working";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
-import { useIsFocused } from "expo-router";
+import { Stack, useIsFocused } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, StyleSheet } from "react-native";
 import { useOrg } from "@/providers/org";
-import { LargeTitleScreen, LIST_AVATAR, ListRow, SkeletonList } from "@/ui";
+import { LargeTitleScreen, LIST_AVATAR, ListRow, SkeletonList, useWide } from "@/ui";
 import { router } from "@/ui/navigation";
 import { workByAgent } from "../agents/logic";
 import { useRowMenus } from "../categories/menus";
@@ -29,6 +29,7 @@ import { SheetHostProvider } from "../shared/SheetHost";
 import { useTabHeader } from "../shared/tabHeader";
 import { alongInAccessory } from "../work-along/logic";
 import { useHasWorkAlong } from "../work-along/WorkAlong";
+import { ChatsSplit, OpenFirstChat, SplitHandoff } from "./ChatsSplit";
 import { DeletingNotice } from "./DeletingNotice";
 import { FirstAgentEmpty, Greeting, GreetingSky } from "./Greeting";
 import { Arrive, useHomeEntrance, useWake } from "./HomeEntrance";
@@ -48,6 +49,7 @@ import {
 } from "./logic";
 import { type PinnedItem, PinnedStrip } from "./PinnedStrip";
 import { usePins } from "./pins";
+import { firstChatOf, useChatOpener } from "./split";
 import { TeamPeek } from "./TeamPeek";
 import { teamPeekers } from "./team-peek";
 import { useAgentRowStates, useFinished } from "./useHomeNow";
@@ -96,12 +98,33 @@ export function useHidesQuietGeneral(): boolean {
  * You › Work.
  */
 export function ChatsScreen() {
+  // On a large screen (ADR 0212: the iPhone Duo's inner display) the list and the open conversation side by side, each
+  // pane with its own bar: the tab's bar would stand over both.
+  const wide = useWide();
   return (
-    <SheetHostProvider>
-      <Home />
-    </SheetHostProvider>
+    <>
+      <Stack.Screen options={wide ? SPLIT_OPTIONS : LIST_OPTIONS} />
+      <SplitHandoff wide={wide} />
+      {wide ? (
+        <ChatsSplit
+          list={
+            <SheetHostProvider>
+              <Home />
+            </SheetHostProvider>
+          }
+        />
+      ) : (
+        <SheetHostProvider>
+          <Home />
+        </SheetHostProvider>
+      )}
+    </>
   );
 }
+
+/** Said either way: a screen's options merge, so the bar the split hid stays hidden until it is shown again. */
+const SPLIT_OPTIONS = { headerShown: false };
+const LIST_OPTIONS = { headerShown: true };
 
 function Home() {
   const { t } = useTranslation();
@@ -123,8 +146,12 @@ function Home() {
   const active = useActiveWork();
   const waiting = useWaitingItems();
   const { collapsed, toggle } = useCollapsedSections();
+  // The widgets' section is memoized: its toggle stays one function.
+  const toggleWidgets = useCallback(() => toggle("widgets"), [toggle]);
   // An administrator reads every channel (ADR 0151): the ones they aren't in wait at the end of the home.
   const others = (useChannels(orgId).data ?? []).filter((c) => c.seenAsAdmin);
+  // Beside the open conversation (ADR 0212) a conversation opens in the split's pane rather than pushed.
+  const opener = useChatOpener();
   const menus = useRowMenus();
   const { mutate: muteChannel } = useMuteChannel(orgId);
   const muteRow = useCallback(
@@ -176,6 +203,9 @@ function Home() {
   const pins = usePins();
   // Recentes: every conversation by its latest activity, the pinned ones in their place (the strip holds the pins).
   const recent = recentRows(withoutQuietGeneral(pinned.rows, hideGeneral));
+  // In the split with nothing open yet, the most recent conversation opens beside the list (the right hand's after
+  // every row of Recentes: it is never one of them).
+  const first = opener ? firstChatOf(pinned.pin ? [...recent, pinned.pin] : recent) : null;
   // A list that failed to load isn't an empty workspace: it says the server didn't answer. A #general left out of
   // sight still counts: the home keeps its greeting and the right hand's field.
   const failed = list.failed && list.rows.length === 0;
@@ -243,6 +273,7 @@ function Home() {
       pull={pull}
       {...(peekers ? { pastEnd: (scroll) => <TeamPeek scroll={scroll} agents={peekers} /> } : {})}
     >
+      {opener ? <OpenFirstChat channelId={first?.channelId ?? null} threadId={first?.threadId ?? null} /> : null}
       {/* Being deleted, its line comes first and alone: its work stopped, nothing else is news (ADR 0088 §7). */}
       {org?.deletion ? (
         <DeletingNotice />
@@ -270,7 +301,7 @@ function Home() {
       ) : (
         <>
           {/* Início's widgets, and the way to Dashboards ("See all"), not a tab (ADR 0135 §15). */}
-          <HomeWidgets collapsed={collapsed.includes("widgets")} onToggle={() => toggle("widgets")} />
+          <HomeWidgets collapsed={collapsed.includes("widgets")} onToggle={toggleWidgets} />
           <PinnedStrip
             items={strip}
             collapsed={collapsed.includes("pinned")}
@@ -305,7 +336,7 @@ function Home() {
                   facts={factsOf(r, agentStates.get(r.key))}
                   divider={i > 0}
                   live={!collapsed.includes("recent") && live++ < LIVE_ROWS}
-                  pinLabel={menus.rowActionsOf(r).find((a) => a.key === "pin")?.label ?? null}
+                  pinLabel={menus.pinLabelOf(r)}
                   onHold={menus.openRowMenu}
                   holdLabel={holdLabel}
                   holdActions={menus.rowActionsOf}
@@ -336,7 +367,8 @@ function Home() {
               {...(o.topic ? { sub: o.topic, subLines: 1 } : {})}
               chevron
               accessibilityRole="button"
-              onPress={() => router.push(chatHref(o.id))}
+              opens={!opener}
+              onPress={() => (opener ? opener.open({ channelId: o.id, threadId: null }) : router.push(chatHref(o.id)))}
             />
           ))}
         </CollapsibleSection>

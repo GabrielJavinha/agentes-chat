@@ -33,6 +33,7 @@ import {
 } from "./media";
 import { can, lockOrgMembers, requireActiveMembership, requirePermission } from "./organizations";
 import { isRightHand, rightHandPermanent } from "./right-hand";
+import type { AccountSwitch } from "./spill";
 import { type ApprovalsLevel, DEFAULT_APPROVALS_LEVEL } from "./tools/run-policy";
 import {
   agentBudgetsThisMonth,
@@ -276,6 +277,7 @@ export async function updateOrgSettings(
     }
   });
   caches.orgs.delete(`${orgId}:`);
+  caches.membership.deletePrefix(`${orgId}:`);
   caches.orgs.delete(`${orgId}:agent-budget`);
   // Agents on the default budget whose runs wait for it look again now (the rest park again quietly).
   if (input.defaultAgentBudgetNanoUsd !== undefined) await resumeBudgetWaits(db, orgId, null);
@@ -694,6 +696,8 @@ export interface RunSummary {
   repo: string | null;
   /** A GitHub repository it was refused (not in the agent's list), if any. */
   deniedRepo: string | null;
+  /** It went on with another account than its agent's own (`Transcript.accountSwitch`), if it did. */
+  accountSwitch: AccountSwitch | null;
 }
 
 /** Run history, newest first, with tokens and cost from the usage records of each run. */
@@ -725,6 +729,7 @@ export async function listRuns(
       deniedRepo: sql<
         string | null
       >`case when jsonb_typeof(${t}->'deniedRepo') = 'string' then ${t}->>'deniedRepo' end`,
+      accountSwitch: sql<AccountSwitch | null>`${t}->'accountSwitch'`,
     })
     .from(agentRuns)
     .where(
@@ -801,6 +806,7 @@ export async function listRuns(
       finishedAt: r.finishedAt,
       repo: r.repo,
       deniedRepo: r.deniedRepo,
+      accountSwitch: r.accountSwitch ?? null,
     };
   });
 }

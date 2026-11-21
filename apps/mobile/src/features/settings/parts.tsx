@@ -21,15 +21,8 @@ import { KeyboardBar, TOOLBAR_HEIGHT } from "@/ui/auth/AuthScaffold";
 import { useColors, useNow, usePullRefresh } from "../shared/hooks";
 import { showActionSheet } from "../shared/PickerSheet";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
-import {
-  BarNote,
-  BottomBar,
-  copyText,
-  type HeaderWordAction,
-  MONO,
-  PushedHeader,
-  successHaptic,
-} from "../shared/parts";
+import { BottomBar, copyText, type HeaderWordAction, MONO, PushedHeader, successHaptic } from "../shared/parts";
+import { useSplitGuard } from "../shared/SplitPanes";
 
 /**
  * What the workspace's settings screens share (each one a screen pushed with the platform's push, as Você's): the
@@ -57,7 +50,7 @@ export function SettingsPage(props: SettingsPageProps) {
 
 interface SettingsPageProps {
   title: string;
-  /** What the page is about (whose role, which channel): a quiet line right under the bar (`BarNote`). */
+  /** What the page is about (whose role, which channel): the bar's line under its title. */
   subtitle?: string | undefined;
   action?: HeaderWordAction;
   /** An icon button on the bar's right in place of a word. Prefer `actions`. */
@@ -147,6 +140,7 @@ function CompactPage({
     <View style={[styles.fill, { backgroundColor: c.grouped }]}>
       <PushedHeader
         title={title}
+        subtitle={subtitle}
         solid={false}
         grouped
         {...(busy
@@ -170,7 +164,6 @@ function CompactPage({
         // A docked action holds the home indicator's room itself.
         contentContainerStyle={[styles.body, { paddingBottom: bottom ? 24 : 24 + insets.bottom }]}
       >
-        {subtitle ? <BarNote>{subtitle}</BarNote> : null}
         {/* What is there as the screen opens doesn't fade in; what loads while it is watched does (`Loaded`). */}
         <Locked when={locked || busy || frozen} readable={frozen && !locked && !busy}>
           <LayoutAnimationConfig skipEntering>{children}</LayoutAnimationConfig>
@@ -191,19 +184,23 @@ function CompactPage({
 
 /**
  * Leaving a form with changes not saved asks first (back, the edge swipe, a replace), as editing an agent does: the
- * changes go only when the person says so. Returns `leave`, which a finished save calls before it goes on, so it isn't
+ * changes go only when the person says so. In a split's detail pane (ADR 0212) another row of the list replacing the
+ * form asks the same (`useSplitGuard`). Returns `leave`, which a finished save calls before it goes on, so it isn't
  * asked about what it just saved.
  */
 export function useUnsavedGuard(dirty: boolean): () => void {
   const { t } = useTranslation();
   const leaving = useRef(false);
-  usePreventRemove(dirty, ({ repeat }) => {
-    if (leaving.current) return repeat();
+  const ask = (repeat: () => void) =>
     Alert.alert(t("mobile.agentEdit.discardTitle"), t("mobile.agentEdit.discardText"), [
       { text: t("mobile.agentEdit.keepEditing"), style: "cancel" },
       { text: t("mobile.agentEdit.discard"), style: "destructive", onPress: repeat },
     ]);
+  usePreventRemove(dirty, ({ repeat }) => {
+    if (leaving.current) return repeat();
+    ask(repeat);
   });
+  useSplitGuard(dirty ? (go) => (leaving.current ? go() : ask(go)) : null);
   return () => {
     leaving.current = true;
   };

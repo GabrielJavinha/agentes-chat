@@ -27,6 +27,7 @@ import {
   MenuSeparator,
   SearchField,
   Segmented,
+  Tip,
   Toolbar,
 } from "@agenteschat/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -287,15 +288,25 @@ export function DeviceRowView({
         </span>
       </span>
       <span className="dv-row__status">
-        <StatusPill status={d.status} />
-        {detail &&
-          (d.status.kind === "needs_you" && row.kind === "phone" && d.mayManage ? (
-            <button type="button" className="ac-link dv-row__detail" onClick={() => onFix(row.device, host)}>
-              {detail}
-            </button>
-          ) : (
-            <span className="dv-row__detail">{detail}</span>
-          ))}
+        {detail && onHostPage && row.kind === "phone" ? (
+          <StatusTip
+            status={d.status}
+            detail={detail}
+            onFix={d.status.kind === "needs_you" && d.mayManage ? () => onFix(row.device, host) : undefined}
+          />
+        ) : (
+          <>
+            <StatusPill status={d.status} />
+            {detail &&
+              (d.status.kind === "needs_you" && row.kind === "phone" && d.mayManage ? (
+                <button type="button" className="ac-link dv-row__detail" onClick={() => onFix(row.device, host)}>
+                  {detail}
+                </button>
+              ) : (
+                <span className="dv-row__detail">{detail}</span>
+              ))}
+          </>
+        )}
       </span>
       <span className="dv-row__people">
         <OwnerLine device={{ ownerUserId: row.kind === "computer" ? ownerOf(row.device) : d.ownerUserId }} />
@@ -362,6 +373,36 @@ export function DeviceRowView({
         )}
       </span>
     </div>
+  );
+}
+
+/**
+ * A phone's state on its computer's page: the pill alone, its detail in its tip ("para Rui desde 22:58"). When the
+ * phone needs the viewer, the pill is a button that opens the fix, and the tip's words are the same action as a link.
+ */
+function StatusTip({ status, detail, onFix }: { status: PhoneDevice["status"]; detail: string; onFix?: () => void }) {
+  if (onFix)
+    return (
+      <Tip
+        button
+        look="ac-msg__tip"
+        tip={
+          <button type="button" tabIndex={-1} className="ac-link" onClick={onFix}>
+            {detail}
+          </button>
+        }
+      >
+        <button type="button" className="dv-status-tip" onClick={onFix}>
+          <StatusPill status={status} />
+          <span className="ac-visually-hidden">{detail}</span>
+        </button>
+      </Tip>
+    );
+  return (
+    <Tip look="ac-msg__tip" tip={detail} tabIndex={0} className="dv-status-tip">
+      <StatusPill status={status} />
+      <span className="ac-visually-hidden">{detail}</span>
+    </Tip>
   );
 }
 

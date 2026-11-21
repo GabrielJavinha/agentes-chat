@@ -417,7 +417,8 @@ export async function emailArtFor(
   resolve: ResolveHost = resolveHostDns,
 ): Promise<EmailArt & { attached?: "attach" | "blocked" | "unreachable" }> {
   const art = emailArtAt(publicUrl);
-  const host = mode === "auto" ? await publicHostAddress(new URL(publicUrl).hostname, resolve) : null;
+  const host =
+    mode === "auto" ? await publicHostAddress(new URL(publicUrl).hostname, resolve, { internet: true }) : null;
   if (host?.ok) return art;
   const files = webDir ? await readPictures(join(webDir, "email")) : null;
   return files ? { ...art, base: null, files, attached: host?.reason ?? "attach" } : art;

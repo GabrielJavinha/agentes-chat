@@ -31,11 +31,13 @@ import {
   GroupedHeader,
   GroupedList,
   GroupedRow,
+  insetPastFold,
   motion,
   ProviderLogo,
   SCREEN_X,
   SkeletonList,
   Text,
+  useFoldRoom,
   useReducedMotion,
   useTheme,
 } from "@/ui";
@@ -357,7 +359,8 @@ const DOCK_OUT = 28;
 
 /**
  * The effort, floating over the model list in the thumb's reach, whatever is scrolled under it. It slides away with
- * "Automático", which picks the effort too.
+ * "Automático", which picks the effort too. Folded like a book, the ramp keeps to the half past the fold, so its thumb
+ * never slides through the curve (ADR 0212).
  */
 function EffortDock({
   agentId,
@@ -373,6 +376,7 @@ function EffortDock({
   const { colors, shadows } = useTheme();
   const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
+  const foldSide = useFoldRoom();
   const dir = useDirectory();
   const { orgId } = useOrg();
   const view = useAgentBrain(orgId, agentId, true, false, scope).data;
@@ -395,7 +399,12 @@ function EffortDock({
         height.set(e.nativeEvent.layout.height);
         onHeight(e.nativeEvent.layout.height);
       }}
-      style={[styles.dock, { bottom: insets.bottom + 8, boxShadow: shadows.e2 }, slid]}
+      style={[
+        styles.dock,
+        { bottom: insets.bottom + 8, boxShadow: shadows.e2 },
+        foldSide && insetPastFold(foldSide, SCREEN_X),
+        slid,
+      ]}
     >
       <Glass liquid intensity={70} style={[styles.dockGlass, { borderColor: colors.line2 }]}>
         <EffortRamp

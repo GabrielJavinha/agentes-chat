@@ -290,6 +290,15 @@ export const editsAgent = (a: AgentAccessFields, userId: string, membership: Vie
   !!membership &&
   (a.ownerUserId === userId || managesAgent(a, userId, membership) || namedEditor(a, userId, membership));
 
+/**
+ * Whether someone besides `userId` and who manages agents may have written the agent's instructions: another owner
+ * or a "Quem pode editar" entry. Such text read into a run is others' words, never a reason to act at once.
+ */
+export const othersEditAgent = (a: Pick<Agent, "ownerUserId" | "editorUserIds" | "editorRoleIds">, userId: string) =>
+  (!!a.ownerUserId && a.ownerUserId !== userId) ||
+  a.editorUserIds.some((id) => id !== userId) ||
+  a.editorRoleIds.length > 0;
+
 /** Who sets up and changes the agent's routines: who edits it, and "Criar rotinas" where it reaches (`keysReach`). */
 export const managesRoutinesOf = (a: AgentAccessFields, userId: string, membership: Viewer) =>
   editsAgent(a, userId, membership) || (can(membership, "manage_routines") && keysReach(a, userId, membership));

@@ -2,12 +2,14 @@ import {
   browserHandoffOf,
   browserTrailOf,
   desktopTrailOf,
+  isPinnedSelection,
   keys,
   type Message,
   type MessageReceipt,
   messageLiveRef,
   type ReplyRef,
   type RunConsultation,
+  resolvedOf,
   type ScreenKind,
   type SurfaceLinks,
   type ThreadInfo,
@@ -58,8 +60,8 @@ import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
 import { type ReplyStop, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
 import { type AgentColorName, mixHex } from "@agenteschat/ui/agent/engine";
 import { WALLPAPER_LIFT } from "@agenteschat/ui/sky/wallpaper";
-import { useQueryClient } from "@tanstack/react-query";
-import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { memo, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type GestureResponderEvent, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -108,7 +110,7 @@ import { WaitToolOffAction } from "../devices/ToolOneClick";
 import { localFilesOf } from "../files/local-files";
 import { LocalFiles, MessageFiles } from "../files/MessageFiles";
 import { consultationHref, routineHref } from "../links/logic";
-import { MessageAbout } from "../live-files/talk/AboutLine";
+import { MessageAbout, ResolvedLine } from "../live-files/talk/AboutLine";
 import { surfaceTagText } from "../me/surface";
 import { DecisionCard, MissionCard, PlanCard, ReviewCard, SetupFailedCard } from "../missions/cards";
 import { AwayPill, BrainWait } from "../outages/WaitCard";
@@ -124,7 +126,7 @@ import { VoiceMessage } from "../voice/VoiceMessage";
 import { FilesTextOnlyFix, ReceiptMark } from "./AgentReceipts";
 import { secretRequestOf } from "./ask-store";
 import { ChatMedia } from "./ChatMedia";
-import { ClippedMessage } from "./ClippedMessage";
+import { ClippedMessage, OpenedMessagesContext } from "./ClippedMessage";
 import { ConsultPairRow, useRunConsults } from "./ConsultGroup";
 import { ApprovalInline, QuestionCard, ThreadLink } from "./cards";
 import { FeedbackOfferRow } from "./FeedbackOffer";
@@ -172,7 +174,7 @@ import {
 import { SecretCard } from "./SecretCard";
 import { ModelStandInLine, SpeedFallbackLine, StopPill } from "./StoppedLine";
 import { useStopMovedOn, useStoppedRun } from "./stopped-runs";
-import { SwipeSlide, SwipeTime, useGiveWay } from "./swipe-time";
+import { SwipeSlide, SwipeTime, useGiveWay, useSwipeSlide } from "./swipe-time";
 import { TeamChecks } from "./TeamChecks";
 import { SavedTools, TurnTools } from "./ToolCalls";
 import { keptTurn, stepLimitOf, stoppedOf, turnOpener } from "./turn";
@@ -194,10 +196,15 @@ const TRAIL_RECENT_MS = 12 * 60 * 60_000;
  * What the row holds when it mounts just shows (`skipEntering`): the list mounts a row again each time it comes back
  * into view, and a part that fades in when it changes (a receipt's mark, a decided request's outcome, an undone
  * action's line) faded in again on every scroll. What changes while the row shows still fades in.
+ *
+ * "See more" opening its message mounts the row again the same way, at its whole height from its first frame (the
+ * words' height and a table's columns are kept): grown in place, the bubble's frame stayed taller than its words, an
+ * empty block under the last line that pushed what follows away (seen on a phone).
  */
 export const MessageRow = memo(function MessageRow(props: RowProps) {
+  const opened = useContext(OpenedMessagesContext)?.has(props.message.id) === true;
   return (
-    <LayoutAnimationConfig skipEntering>
+    <LayoutAnimationConfig key={opened ? "opened" : "row"} skipEntering>
       <RowBody {...props} />
     </LayoutAnimationConfig>
   );
@@ -268,15 +275,15 @@ function RowBody({
   const qc = useQueryClient();
   const orgId = useOrgId();
   const { org } = useOrg();
-  const report = routine?.noticeId
-    ? routineReportText(
-        [
-          ...(qc.getQueryData<Message[]>(keys.messages(orgId, m.channelId)) ?? []),
-          ...((m.threadId && qc.getQueryData<Message[]>(keys.thread(orgId, m.channelId, m.threadId))) || []),
-        ],
-        routine.noticeId,
-      )
-    : null;
+  // Found again only when the cached lists it reads change, not on every draw of the row.
+  const noticeId = routine?.noticeId;
+  const listed = noticeId ? qc.getQueryData<Message[]>(keys.messages(orgId, m.channelId)) : undefined;
+  const threaded =
+    noticeId && m.threadId ? qc.getQueryData<Message[]>(keys.thread(orgId, m.channelId, m.threadId)) : undefined;
+  const report = useMemo(
+    () => (noticeId ? routineReportText([...(listed ?? []), ...(threaded ?? [])], noticeId) : null),
+    [noticeId, listed, threaded],
+  );
   // A plain reminder: the agent's own message with a "Lembrete" label (the server's prefix dropped).
   const reminder = isReminderMessage(meta);
   // A short reply it gave while its task kept working (the talker): its message, "enquanto trabalha".
@@ -435,7 +442,17 @@ function RowBody({
   const files = artifactsOf(meta);
   // Mine, just sent: drawn from the phone while they upload.
   const localFiles = localFilesOf(meta);
-  const aboveReactions = useReactions(orgId, above?.id ?? "", false).data;
+  // The message above's reactions as `useReactions` reads them (cached, never fetched here); with no message above,
+  // nothing to follow.
+  const api = useApi();
+  const aboveId = above?.id ?? "";
+  const aboveReactions = useQuery({
+    queryKey: keys.reactions(orgId, aboveId),
+    queryFn: () => api.chat.reactions(orgId, aboveId),
+    enabled: false,
+    staleTime: 30_000,
+    subscribed: above !== undefined,
+  }).data;
   const run = runAround(
     runAt,
     above ? hangsUnder(above, aboveThread, aboveReactions, meId) : false,
@@ -498,6 +515,8 @@ function RowBody({
   const quote = replyOf(meta);
   // About part of a live file (ADR 0199): its line over the message, a tap shows that part in the file.
   const liveRef = messageLiveRef(m);
+  // A comment with a pin on a picture, a video or a PDF, resolved (ADR 0208): who did it, under it.
+  const resolved = liveRef && !m.local && isPinnedSelection(liveRef.selection) ? resolvedOf(meta) : null;
   const myHandle = useRowMyHandle();
   const mentionsMe = !mine && mentionsReader({ body, meta }, myHandle);
 
@@ -522,9 +541,11 @@ function RowBody({
     </>
   );
   const missionDecision = decision ? <DecisionCard missionId={decision.missionId} decisionId={decision.id} /> : null;
-  // Under everything: the thread it started, its reactions and whether it went out.
+  // Under everything: who resolved it (a comment on a file), the thread it started, its reactions and whether it went
+  // out.
   const foot = (
     <>
+      {resolved ? <ResolvedLine resolved={resolved} end={onRight} /> : null}
       {thread && !meta?.missionStart ? (
         <View style={onRight ? styles.meEnd : undefined}>
           <ThreadLink thread={thread} />
@@ -563,6 +584,8 @@ function RowBody({
   // Someone else's bubble gives way to the times only when it is too wide for them (`useGiveWay`): its bubbles end
   // sooner than mine at the screen's edge, so that much room is there before it moves.
   const giveWay = useGiveWay(ROW_BODY_INSET.bubbles.right - BUBBLES_EDGE);
+  // A compact row runs to the screen's edge: its face and words slide over with the pull, for its time.
+  const slide = useSwipeSlide(compact);
 
   if (onRight) {
     // In bubbles the time and what became of the message are never in it (a mark coming in or swapping changed the
@@ -629,7 +652,12 @@ function RowBody({
         onLongPress={press}
         delayLongPress={380}
         accessibilityHint={press ? t("mobile.chat.longPressHint") : undefined}
-        style={({ pressed }) => [styles.me, rowFrame(rhythm.block, rowGap), pressed && press && styles.mePressed]}
+        style={({ pressed }) => [
+          styles.me,
+          rowFrame(rhythm.block, rowGap),
+          bubbled && styles.ownBox,
+          pressed && press && styles.mePressed,
+        ]}
       >
         <SwipeSlide on={bubbled} style={styles.meSlide}>
           <RowPartContext.Provider value={cardTop}>
@@ -899,6 +927,9 @@ function RowBody({
           styles.msg,
           bubbled && lookRows.bubblesRow,
           bubbled && !look.faces && lookRows.bubblesBare,
+          // A bubble row paints nothing past its own box: the list puts the next row right under it, and a bubble
+          // drawn taller than its row (its frame lagging its layout) covered the messages after it.
+          bubbled && styles.ownBox,
           compact && lookRows.compactRow,
           rowFrame(rhythm.block, rowGap),
           // On the quote it answers (or the line about a file's part), its plate never over it.
@@ -910,11 +941,6 @@ function RowBody({
           pressed && press && { backgroundColor: c.sunken },
         ]}
       >
-        {compact ? (
-          <Text variant="caption" tone="faint" style={lookRows.compactClock}>
-            {when.time(m.createdAt)}
-          </Text>
-        ) : null}
         {look.faces ? (
           <Animated.View
             style={[
@@ -922,6 +948,7 @@ function RowBody({
               bubbled && lookRows.bubblesSlot,
               compact && lookRows.compactSlot,
               inBubble && giveWay.style,
+              compact && slide,
             ]}
           >
             {grouped ? (
@@ -937,7 +964,7 @@ function RowBody({
           </Animated.View>
         ) : null}
         {/* Its face and its body give way together (`useGiveWay`), so the bubble never runs under the face. */}
-        <Animated.View style={[styles.body, { gap: rhythm.part }, inBubble && giveWay.style]}>
+        <Animated.View style={[styles.body, { gap: rhythm.part }, inBubble && giveWay.style, compact && slide]}>
           <RowParts top={partTop} part={bubblePart} head={bubbleHead}>
             {nameOrWords ? (
               <View onLayout={inBubble ? giveWay.onArea : undefined}>
@@ -1076,13 +1103,16 @@ function RowBody({
           </RowParts>
           {hintNode}
         </Animated.View>
-        {/* A bubble holds no time (its words alone set its width): a pull to the left shows it, in the row's gutter. */}
-        {inBubble ? (
+        {/* A bubble holds no time (its words alone set its width), nor does a compact row: a pull to the left shows it,
+            in the row's gutter (a compact row's mark stays on its first line). */}
+        {inBubble || compact ? (
           <SwipeTime>
             <Text variant="caption" tone="muted">
               {when.time(m.createdAt)}
             </Text>
-            {receipt || seenBy ? <ReceiptMark message={m} mine={mine} receipt={receipt} seenBy={seenBy} /> : null}
+            {inBubble && (receipt || seenBy) ? (
+              <ReceiptMark message={m} mine={mine} receipt={receipt} seenBy={seenBy} />
+            ) : null}
           </SwipeTime>
         ) : null}
         {popNode}
@@ -1552,6 +1582,8 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   replied: { marginTop: 0, paddingTop: QUOTE_GAP },
+  // Bubbles only: the other looks' cards cast shadows past the row.
+  ownBox: { overflow: "hidden" },
   aboutAbove: { paddingRight: 16 },
   avslot: { width: MSG_AVATAR, alignItems: "center", paddingTop: 2 },
   body: { flex: 1, minWidth: 0 },

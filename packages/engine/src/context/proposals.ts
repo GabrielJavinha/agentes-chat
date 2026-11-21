@@ -173,11 +173,15 @@ export function lineDiff(before: string, after: string): string {
 
 const LEARNED = "## Learned";
 
-/** Text with one more bullet, under a "Learned" heading (deterministic, no model). */
-export function withLearnedBullet(text: string, bullet: string) {
+/**
+ * Text with one more bullet (deterministic, no model): the org context's under a "Learned" heading; an agent's
+ * instructions at their end, as one more instruction (its lessons are memory: `moveLearnedSections`).
+ */
+export function withLearnedBullet(text: string, bullet: string, heading = true) {
   const line = `- ${bullet.replace(/\s+/g, " ").trim()}`;
   if (text.includes(line)) return text;
   const base = text.trimEnd();
+  if (!heading) return base ? `${base}${/(^|\n)[-*] [^\n]*$/.test(base) ? "\n" : "\n\n"}${line}` : line;
   return base.includes(LEARNED) ? `${base}\n${line}` : `${base}${base ? "\n\n" : ""}${LEARNED}\n${line}`;
 }
 
@@ -217,7 +221,7 @@ export async function proposeFromItem(
     target = "org_context";
     current = org.context;
   }
-  const proposedText = withLearnedBullet(current, itemWords(item).text);
+  const proposedText = withLearnedBullet(current, itemWords(item).text, target === "org_context");
   if (proposedText === current) return null;
   const diff = lineDiff(current, proposedText);
   const baseHash = sha256(current);
@@ -691,7 +695,10 @@ async function carryOpenRows(tx: Executor, p: Proposal, text: string) {
   for (const r of open) {
     const lines = r.diff.split("\n").filter((l) => /^[+-]/.test(l) && l.slice(1).trim() && l.slice(1) !== LEARNED);
     if (!lines.every((l) => l.startsWith("+- "))) continue;
-    const proposedText = lines.reduce((next, l) => withLearnedBullet(next, l.slice(3)), text);
+    const proposedText = lines.reduce(
+      (next, l) => withLearnedBullet(next, l.slice(3), p.target === "org_context"),
+      text,
+    );
     if (proposedText === text || proposedText.length > max) continue;
     await tx
       .update(contextProposals)
@@ -1109,11 +1116,11 @@ const CURRENT_CHARS = 2000;
 const TEXT_MAX = { instructions: 50_000, context: 20_000 };
 
 /**
- * `text` with a change: a rule added under "Learned", or `replaces` swapped for `change`, only when it appears
+ * `text` with a change: a rule added (`withLearnedBullet`), or `replaces` swapped for `change`, only when it appears
  * exactly once (else null). Removing a whole line (`change` empty) takes the line, its bullet included.
  */
-export function changedText(text: string, change: string, replaces?: string): string | null {
-  if (replaces === undefined) return withLearnedBullet(text, change);
+export function changedText(text: string, change: string, replaces?: string, heading = true): string | null {
+  if (replaces === undefined) return withLearnedBullet(text, change, heading);
   const at = text.indexOf(replaces);
   if (at < 0 || text.includes(replaces, at + 1)) return null;
   let start = at;
@@ -1191,7 +1198,7 @@ async function cardAgents(
 /**
  * Proposals an agent makes because a person asked it in conversation: a
  * rule added to its own or other agents' instructions or to the org context
- * (or exact text swapped or removed there), and other agents' roles and apps.
+ * (or exact text swapped or removed there, or the whole text rewritten), and other agents' roles and apps.
  * One row per agent and kind of change, for one card; the agent never edits
  * any of them, a person who may make that change accepts each, or with `atOnce`
  * the person who asked, as it is made (`applyAsked`). Only agents the person who
@@ -1210,6 +1217,8 @@ export async function proposeChange(
     /** The rule to add, or what takes the place of `replaces` (empty: removes it). */
     change: string;
     replaces?: string;
+    /** The whole new text, in place of `change` and `replaces`: a rewrite the person asked for. */
+    whole?: string;
     roles?: { agentId: string; role: string }[];
     access?: { agentId: string; lines: AccessLine[] }[];
     rationale: string;
@@ -1230,8 +1239,8 @@ export async function proposeChange(
   };
   const rows: (typeof contextProposals.$inferInsert)[] = [];
   const skipped: string[] = [];
-  const textChange = (current: string, what: string, max: number) => {
-    const next = changedText(current, change, replaces);
+  const textChange = (current: string, what: string, max: number, heading: boolean) => {
+    const next = input.whole ?? changedText(current, change, replaces, heading);
     if (next === null) {
       const where = current.includes(replaces ?? "") ? "appears more than once in" : "isn't in";
       skipped.push(`The text to swap ${where} ${what}. It reads: """${cutText(current, CURRENT_CHARS)}"""`);
@@ -1243,7 +1252,7 @@ export async function proposeChange(
   if (input.target === "org_context") {
     const [org] = await db.select().from(organizations).where(eq(organizations.id, orgId));
     if (!org) throw new NotFoundError("Organization not found");
-    const text = textChange(org.context, "the org context", TEXT_MAX.context);
+    const text = textChange(org.context, "the org context", TEXT_MAX.context, true);
     if (text) rows.push({ ...base, target: "org_context", agentId: null, ...text });
   } else {
     const instructed = input.agentIds ?? [input.agentId];
@@ -1253,7 +1262,7 @@ export async function proposeChange(
       const agent = team.get(id) as Agent;
       const who = `@${agent.handle}`;
       if (instructed.includes(id)) {
-        const text = textChange(agent.instructions, `${who}'s instructions`, TEXT_MAX.instructions);
+        const text = textChange(agent.instructions, `${who}'s instructions`, TEXT_MAX.instructions, false);
         if (text) rows.push({ ...base, target: "agent_instructions", agentId: id, ...text });
       }
       const role = roles

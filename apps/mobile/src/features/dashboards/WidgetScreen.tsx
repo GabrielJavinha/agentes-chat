@@ -35,8 +35,10 @@ import {
   LineIcon,
   Locked,
   PressScale,
+  padPastFold,
   systemText,
   Text,
+  useFoldRoom,
   useTheme,
   useToast,
 } from "@/ui";
@@ -410,12 +412,14 @@ function WaitFix({ agentId, wait }: { agentId: string; wait: WidgetWait }) {
 
 /**
  * "Ask Theo for a change": a field at the bottom; what is sent goes to the agent, who redoes the widget in place. While
- * the workspace is being deleted it says why it takes none, as a conversation does (ADR 0088 §7).
+ * the workspace is being deleted it says why it takes none, as a conversation does (ADR 0088 §7). Folded like a book,
+ * the field keeps to the half past the fold, never across it (ADR 0212); its fade still spans the screen.
  */
 function AskChange({ widget: w, name }: { widget: WidgetDetail; name: string }) {
   const { t } = useTranslation();
   const { colors: c, shadows } = useTheme();
   const insets = useSafeAreaInsets();
+  const foldSide = useFoldRoom();
   const { orgId, org } = useOrg();
   const toast = useToast();
   const failed = useFailed();
@@ -439,7 +443,7 @@ function AskChange({ widget: w, name }: { widget: WidgetDetail; name: string }) 
   const ready = text.trim().length > 0 && !ask.isPending;
   return (
     <KeyboardStickyView offset={{ opened: insets.bottom }} style={styles.dock}>
-      <View style={[styles.box, { paddingBottom: insets.bottom + 8 }]}>
+      <View style={[styles.box, { paddingBottom: insets.bottom + 8 }, foldSide && padPastFold(foldSide, 12)]}>
         <LinearGradient
           pointerEvents="none"
           colors={[`${c.grouped}00`, c.grouped]}

@@ -13,7 +13,6 @@
     "channelCount_many": "{{count}} canaux",
     "channelCount_other": "{{count}} canaux",
     "none": "Aucune catégorie pour l'instant.",
-    "manageHelp": "Touchez une catégorie pour la renommer, la déplacer ou la supprimer.",
     "manageHint": "Ordre, noms et suppression",
     "deleteTitle": "Supprimer {{name}} ?",
     "order": "Place dans la liste",
@@ -196,6 +195,7 @@
     "pinned": "Épinglés",
     "recent": "Récents",
     "seeAll": "Voir toutes les discussions",
+    "splitEmpty": "Vos discussions s'ouvrent ici.",
     "wait": {
       "verb": {
         "approval": "a besoin de votre accord",
@@ -286,8 +286,8 @@
     "to": "À :",
     "people": "Personnes",
     "search": "Personne ou agent",
-    "create": "Créer",
     "agentHint": "Un nom et ce qu'il fait",
+    "create": "Créer",
     "chatShort": "Conversation",
     "chatHint": "Une personne ou un agent",
     "taskHint": "Avec un responsable et une échéance",
@@ -783,10 +783,12 @@
     "section": {
       "missions": "Missions",
       "threads": "Fils"
-    }
+    },
+    "splitEmpty": "Vos fils s'ouvrent ici."
   },
   "agents": {
     "title": "Agents",
+    "splitEmpty": "Les pages de vos agents s'ouvrent ici.",
     "subtitle_one": "{{count}} dans l'équipe · {{working}} au travail",
     "subtitle_many": "{{count}} dans l'équipe · {{working}} au travail",
     "subtitle_other": "{{count}} dans l'équipe · {{working}} au travail",
@@ -835,7 +837,6 @@
     "handleMention": "Mentionnez @{{handle}} pour l'appeler.",
     "handleFromName": "Dans la discussion : @{{handle}}. Il vient du nom. Vous pouvez le changer.",
     "handleFromNameEmpty": "Son @ dans la discussion vient du nom.",
-    "reviewLead": "Touchez une ligne pour la modifier.",
     "planHint": "Ou connectez votre abonnement IA : {{name}} s'en servira pour réfléchir, sans utiliser la clé.",
     "partly": "L'agent a été créé, mais une partie de ce qu'apporte son rôle n'est pas passée. Ajustez-le sur son profil.",
     "import": {
@@ -1174,6 +1175,8 @@
     "notificationsOnHint": "Elles arrivent aussi dans le navigateur et l'app de bureau, si elles y sont activées.",
     "notificationsOffHint": "Activez-les pour recevoir les notifications ici. Les types ci-dessous s'appliquent à tous vos appareils.",
     "notificationsKindsHint": "L'activité garde tout. Ceci s'applique à cet espace de travail, sur tous vos appareils.",
+    "liveActivity": "Agents dans la Dynamic Island",
+    "liveActivityHint": "Quand un agent travaille sur ce que vous avez demandé, il apparaît en haut de l'écran, dans n'importe quelle app, et sur l'écran verrouillé. App fermée, il faut iOS 17.2 ou plus récent.",
     "version": "agentes.chat · version {{version}}",
     "edit": "Modifier",
     "status": "Statut",
@@ -1190,7 +1193,7 @@
     "agentStyle": "Comment parlent les agents",
     "workspaces": "Espaces de travail",
     "workspacesIn": "Vous êtes dans",
-    "workspacesFoot": "Vous restez connecté à chacun et recevez les notifications de tous. Touchez un workspace pour l’ouvrir.",
+    "workspacesFoot": "Vous restez connecté à chacun et recevez les notifications de tous.",
     "workspacesUnreachable": "Pas de réponse pour l’instant",
     "addWorkspace": "Ajouter un workspace",
     "addWorkspaceCreate": "Créer un nouveau workspace",
@@ -1308,6 +1311,16 @@
       "fullscreen": "Plein écran",
       "open": "Ouvrir",
       "cantPlay": "Cette vidéo ne peut pas être lue sur ce téléphone."
+    },
+    "talk": {
+      "hint": {
+        "image": "Touchez l'endroit à commenter",
+        "video": "Touchez la vidéo pour commenter ce moment",
+        "pdf": "Touchez la page pour marquer un point"
+      },
+      "markVideo": "Commenter ce moment de la vidéo",
+      "pdfPage": "Page {{page}} sur {{count}}",
+      "pdfFailed": "Impossible d'afficher ce PDF."
     }
   },
   "issues": {
@@ -2318,7 +2331,6 @@
   },
   "crash": {
     "title": "Un problème est survenu sur cet écran",
-    "subtitle": "L'app a rencontré une erreur en affichant ceci. Réessayez.",
     "retry": "Réessayer"
   },
   "notFound": {
@@ -2349,9 +2361,6 @@
     "deleteFailed": "Impossible de supprimer l'espace de travail. Réessayez.",
     "holdReset": "Maintenez pour réinitialiser",
     "resetFailed": "Impossible de réinitialiser l'espace de travail. Réessayez.",
-    "access": {
-      "how": "Touchez une ligne pour changer son niveau : Aucun accès, Lecture, Lecture et écriture."
-    },
     "logo": {
       "failed": "Impossible d'envoyer le logo",
       "tooBig": "Cette image est trop lourde. Essayez-en une autre."
@@ -2615,7 +2624,7 @@
       "sealedHelp": "Par sécurité, ce qui est enregistré ici ne s'affiche plus. Pour le modifier, saisissez-le à nouveau.",
       "changePassword": "Changer le mot de passe",
       "changeValue": "Changer la valeur",
-      "changeHelp": "Touchez Enregistrer pour le garder. Les agents utilisent ensuite le nouveau.",
+      "changeHelp": "Les agents utilisent le nouveau dès que vous enregistrez.",
       "hidden": "Masqué",
       "saved": "Enregistré",
       "delete": "Supprimer",
@@ -2760,7 +2769,7 @@
     "bySelfUntil": "Écrit par {{name}} · {{when}}"
   },
   "dashboards": {
-    "homeRow": "Vous seul · vos propres widgets",
+    "homeRow": "Vous seul",
     "create": "Créer",
     "routineTarget": "son widget",
     "pin": {
@@ -2845,11 +2854,11 @@
     },
     "drive": {
       "title": "Tout ce que l'équipe crée, au même endroit",
-      "text": "Rapports, tableaux et fichiers des agents et des personnes restent ici, faciles à retrouver.",
+      "text": "Rapports, tableaux et fichiers des agents et des personnes restent ici.",
       "viewerTitle": "Retrouvez ce que l'équipe crée",
       "viewerText": "Ce que les agents et les personnes créent dans les discussions apparaît ici.",
       "titlePersonal": "Tout ce que vos agents créent, au même endroit",
-      "textPersonal": "Les rapports, tableaux et fichiers de vos agents restent ici, faciles à retrouver.",
+      "textPersonal": "Les rapports, tableaux et fichiers de vos agents restent ici.",
       "viewerTitlePersonal": "Retrouvez ce que vos agents créent",
       "viewerTextPersonal": "Ce que les agents créent dans vos discussions apparaît ici."
     },
@@ -2915,7 +2924,7 @@
       "viewerTextPersonal": "Quand quelqu'un vous rejoint, cette personne apparaît ici."
     },
     "chat": {
-      "title": "Tout commence par un message",
+      "title": "Lancez la conversation",
       "text": "Écrivez ci-dessous et tout le monde ici le verra.",
       "viewerTitle": "Les messages apparaissent ici",
       "viewerText": "Quand quelqu'un écrit, vous le lisez ici."
@@ -2956,8 +2965,8 @@
     "board": {
       "title": "Voyez l'essentiel sur un seul tableau",
       "text": "Ajoutez un widget, demandez-en un à un agent ou épinglez un bloc de la discussion.",
-      "viewerTitle": "Ce tableau prend forme",
-      "viewerText": "La personne qui modifie ce tableau ajoute les widgets, et ils apparaissent ici."
+      "viewerTitle": "Les widgets apparaissent ici",
+      "viewerText": "La personne qui modifie ce tableau les ajoute."
     },
     "computers": {
       "title": "Offrez un autre ordinateur à vos agents",
@@ -2966,7 +2975,7 @@
       "viewerText": "La personne qui connecte les ordinateurs les ajoute, et ils apparaissent ici."
     },
     "connectors": {
-      "title": "Donnez à vos agents de vrais outils",
+      "title": "Donnez des outils à vos agents",
       "text": "Connectez un service et ils peuvent y lire et y agir.",
       "viewerTitle": "Les outils de vos agents apparaissent ici",
       "viewerText": "La personne qui gère les connecteurs connecte les services ci-dessous."
@@ -3130,7 +3139,7 @@
       "done": "OK",
       "placeholder": "Saisissez le texte",
       "titlePlaceholder": "Saisissez le titre",
-      "hint": "Chaque ligne est un paragraphe. Ce que vous saisissez va dans le fichier au fur et à mesure."
+      "hint": "Chaque ligne est un paragraphe."
     },
     "show": {
       "nothing": "Toutes les diapositives sont masquées, il n'y a donc rien à montrer.",

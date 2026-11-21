@@ -391,7 +391,7 @@ export {
 export { type TabItem, TabPanel, Tabs } from "./components/Tabs";
 export { normalizeTime, TimeSelect, type TimeSelectProps, timeOptions } from "./components/TimeSelect";
 export { TimezoneSelect, type TimezoneSelectLabels, type TimezoneSelectProps } from "./components/TimezoneSelect";
-export { Tip, type TipProps } from "./components/Tip";
+export { TIP_HOLD_MS, Tip, type TipProps } from "./components/Tip";
 export { Token, TokenList, type TokenProps } from "./components/Token";
 export {
   ToolBlock,

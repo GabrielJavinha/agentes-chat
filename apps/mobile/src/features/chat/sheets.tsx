@@ -1,20 +1,26 @@
 import {
   ApiError,
+  type Channel,
   cachePinned,
+  channelsQuery,
+  type DirectMessage,
+  dmsQuery,
+  isPinnedSelection,
   keys,
   type Message,
   type Mission,
+  messageLiveRef,
   type ReactionCount,
+  resolvedOf,
   type ThreadInfo,
   useApi,
   useChannelCategories,
-  useChannels,
   useCloseMission,
-  useDms,
   useFollowThread,
   useMissionControl,
   usePinMessage,
   usePins,
+  useResolveComment,
   useThreadInfo,
   useThreadMutation,
   useToggleReaction,
@@ -27,7 +33,7 @@ import { conversationWallpaperOf } from "@agenteschat/client/lib/wallpaper";
 import { chartBlocksOf } from "@agenteschat/ui/widgets/spec";
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import type { ReactNode } from "react";
+import { type ReactNode, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { serverUrl } from "@/lib/server";
@@ -85,13 +91,15 @@ export interface MessageActionHands {
   toggle: ReturnType<typeof useToggleReaction>["mutate"];
   /** Pins or unpins (`usePinMessage`). */
   pin: ReturnType<typeof usePinMessage>["mutate"];
+  /** Resolves a comment on a picture, a video or a PDF, or opens it again (`useResolveComment`, ADR 0208). */
+  resolve: ReturnType<typeof useResolveComment>["mutate"];
 }
 
 /**
  * A message's actions, one list for the system's menu (iOS, on hold) and the app's sheet (Android): the quick
  * reactions, then the actions in groups, as the hand expects them: answer (here, in a thread), keep (copy, pin,
- * remind, a mission), and the rest (its link, a chart to a dashboard, the agent who wrote it). `close` runs before
- * an action that opens something else (the sheet closes; the system's menu closes itself).
+ * resolve a comment on a file, remind, a mission), and the rest (its link, a chart to a dashboard, the agent who wrote
+ * it). `close` runs before an action that opens something else (the sheet closes; the system's menu closes itself).
  */
 export function useMessageActions(context: MessageActionsContext, close: () => void) {
   const { t } = useTranslation();
@@ -102,7 +110,8 @@ export function useMessageActions(context: MessageActionsContext, close: () => v
   const qc = useQueryClient();
   const toggle = useToggleReaction(orgId, context.message.id).mutate;
   const pin = usePinMessage(orgId).mutate;
-  return messageActionsOf(context, close, { t, orgId, meId, dir, toast, qc, toggle, pin });
+  const resolve = useResolveComment(orgId).mutate;
+  return messageActionsOf(context, close, { t, orgId, meId, dir, toast, qc, toggle, pin, resolve });
 }
 
 /**
@@ -111,7 +120,7 @@ export function useMessageActions(context: MessageActionsContext, close: () => v
  */
 export function messageActionsOf(context: MessageActionsContext, close: () => void, hands: MessageActionHands) {
   const { message: m, canMission, inThread, thread, onMission, onRemind, onReply } = context;
-  const { t, orgId, meId, dir, toast, qc, toggle, pin } = hands;
+  const { t, orgId, meId, dir, toast, qc, toggle, pin, resolve } = hands;
   const pinned = Boolean(m.pinned);
   const togglePin = () => {
     close();
@@ -128,6 +137,17 @@ export function messageActionsOf(context: MessageActionsContext, close: () => vo
           toast({ title: t(full ? "mobile.pins.full" : "mobile.app.failed"), icon: "x" });
         },
       },
+    );
+  };
+  // A comment with a pin on a picture, a video or a PDF (ADR 0208): Resolve takes its pin off the file, Reopen puts
+  // it back; the message stays. At once here (`useResolveComment`), then as the server says (`message.resolved`).
+  const resolvable = !m.local && isPinnedSelection(messageLiveRef(m)?.selection);
+  const resolved = resolvable && resolvedOf(m.meta) !== null;
+  const toggleResolved = () => {
+    close();
+    resolve(
+      { channelId: m.channelId, messageId: m.id, resolved: !resolved, by: { type: "person", id: meId ?? "" } },
+      { onError: () => toast({ title: t("mobile.app.failed"), icon: "x" }) },
     );
   };
   const agentName = m.author.type === "agent" ? dir.nameOf(m.author) : "";
@@ -205,6 +225,17 @@ export function messageActionsOf(context: MessageActionsContext, close: () => vo
             label: pinned ? t("mobile.pins.unpin") : t("mobile.pins.pin"),
             onPress: togglePin,
           },
+          ...(resolvable
+            ? [
+                {
+                  key: "resolve",
+                  icon: "check" as const,
+                  symbol: (resolved ? "arrow.uturn.backward" : "checkmark.circle") as MenuSymbol,
+                  label: resolved ? t("files.comments.reopen") : t("files.comments.resolve"),
+                  onPress: toggleResolved,
+                },
+              ]
+            : []),
           {
             key: "remind",
             icon: "clock" as const,
@@ -632,14 +663,19 @@ export function ChannelOptions({
   const count = pins.data?.length ?? 0;
   // A channel's sidebar category (ADR 0080), for whoever may move it.
   const moves = useMovesChannel(channelId);
-  const channel = useChannels(orgId).data?.find((c) => c.id === channelId);
+  // Only what this sheet reads of the lists (its category, whether it is a DM): they are read again for any message.
+  const api = useApi();
+  const categoryOf = useCallback(
+    (all: Channel[]) => all.find((c) => c.id === channelId)?.categoryId ?? null,
+    [channelId],
+  );
+  const isDm = useCallback((all: DirectMessage[]) => all.some((d) => d.channelId === channelId), [channelId]);
+  const categoryId = useQuery({ ...channelsQuery(api, orgId), select: categoryOf }).data;
   const categories = useChannelCategories(orgId);
-  const categoryName = channel?.categoryId
-    ? categories.data?.find((c) => c.id === channel.categoryId)?.name
-    : undefined;
+  const categoryName = categoryId ? categories.data?.find((c) => c.id === categoryId)?.name : undefined;
   // This conversation's own background, mine alone; none of its own: it follows the others.
   const { org } = useOrg();
-  const dm = Boolean(useDms(orgId).data?.some((d) => d.channelId === channelId));
+  const dm = useQuery({ ...dmsQuery(api, orgId), select: isDm }).data === true;
   const ownWallpaper = conversationWallpaperOf(org?.chatPrefs, channelId);
   const nameOf = useWallpaperName();
   return (

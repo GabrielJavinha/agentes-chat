@@ -18,7 +18,7 @@ import {
   useReduceMachineAccess,
 } from "@agenteschat/client";
 import { computerName, setupView } from "@agenteschat/client/lib/computer";
-import { offlineCauseText } from "@agenteschat/client/lib/devices";
+import { mayChangeTasks, offlineCauseText, taskLimitLine } from "@agenteschat/client/lib/devices";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { clockAt, firstName, formatTime, joinNames } from "@agenteschat/client/lib/format";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
@@ -231,7 +231,7 @@ function MachinePage({ machineId }: { machineId: string }) {
       ? [setup?.specs ? t("computerSetup.specs", setup.specs) : null, m.online ? null : seenText(t, i18n.language, m)]
           .filter(Boolean)
           .join(" · ")
-      : [t(`machines.os.${osOf(m.os)}`), m.arch, seenText(t, i18n.language, m)].filter(Boolean).join(" · "),
+      : [t(`machines.os.${osOf(m.os)}`), seenText(t, i18n.language, m)].filter(Boolean).join(" · "),
     isPaused(m) ? (pausedByText(t, i18n.language, m.paused, meId ?? "") ?? t("machines.pausedHint")) : null,
   ].filter((x): x is string => Boolean(x));
   // What most people never need, behind one "Detalhes" row, as the web's.
@@ -255,7 +255,9 @@ function MachinePage({ machineId }: { machineId: string }) {
   const causeLine =
     s?.kind === "offline" && s.cause && s.lastSeenAt
       ? offlineCauseText(t, s.cause, clockAt(i18n.language, s.lastSeenAt), "line")
-      : null;
+      : device
+        ? taskLimitLine(t, device, mayChangeTasks(device, meId ?? "", can(org, "configure")))
+        : null;
   const egressIp = managed && m.online ? (m.egress?.ip ?? null) : null;
   const flag = egressIp ? countryFlagSvg(m.egress?.country) : null;
 

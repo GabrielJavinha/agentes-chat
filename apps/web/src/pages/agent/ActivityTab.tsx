@@ -33,6 +33,7 @@ import {
 import type { TFunction } from "i18next";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AccountSwitchLine } from "@/chat/AccountRef";
 import { usd } from "@/components/AgentFields";
 import { AskAgentButton } from "@/components/AskAgentButton";
 import { ErrorState, LoadingList } from "@/components/Loading";
@@ -342,6 +343,11 @@ export function ActivityTab() {
                             {r.repo && <Chip icon="repo">{r.repo}</Chip>}
                             {x.routine && <Chip icon="routines">{t("agentPage.activity.routine")}</Chip>}
                           </span>
+                          {r.accountSwitch && (
+                            <span className="small muted">
+                              <AccountSwitchLine move={r.accountSwitch} />
+                            </span>
+                          )}
                           {r.status === "failed" && (
                             <span className="agp-run__fail ac-iconline">
                               <Icon name="alert" size={14} />

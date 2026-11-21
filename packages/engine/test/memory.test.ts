@@ -700,7 +700,7 @@ describe("flow: conversation → reflect → correction → lesson → recurrenc
     );
     await decideProposal(f.db, f.owner.id, f.org.id, proposal?.id ?? "", "accept");
     const [agent] = await f.db.select().from(schema.agents).where(eq(schema.agents.id, f.agent.id));
-    expect(agent?.instructions).toBe("Answer briefly.\n\n## Learned\n- Add a changelog entry to every PR.");
+    expect(agent?.instructions).toBe("Answer briefly.\n\n- Add a changelog entry to every PR.");
 
     await post(f, "@dev one more");
     await drainOutbox(f.db, f.handlers);
@@ -1238,7 +1238,7 @@ describe("proposals for teammates (one card, a row per agent and kind of change)
     // Nothing changes until a person accepts.
     expect((await agentRow(ada.id))?.instructions).toBe("Seja breve.");
     for (const r of made) await decideProposal(f.db, f.owner.id, f.org.id, r.id, "accept");
-    expect((await agentRow(lia.id))?.instructions).toBe("Seja breve.\n\n## Learned\n- Responder sempre em português.");
+    expect((await agentRow(lia.id))?.instructions).toBe("Seja breve.\n\n- Responder sempre em português.");
     expect(await auditOf(ada.id)).toContainEqual(["proposal.accepted", f.owner.id]);
   });
 

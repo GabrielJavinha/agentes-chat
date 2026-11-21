@@ -673,7 +673,12 @@ export async function machineView(db: Database, actorId: string, orgId: string, 
   return view;
 }
 
+/** Its size as stored, with a new task limit (`TASK_LIMIT_PROTOCOL`); a row with no size yet keeps none. */
+export const withTaskLimit = (maxTasks: number) =>
+  sql`jsonb_set(${machines.size}, '{maxTasks}', to_jsonb(${maxTasks}::int))`;
+
 /** `machine.updated` to every member: what changed (no access details: those are for admins and the pairer). */
+
 export async function publishMachineUpdated(
   pubsub: PubSub | undefined,
   orgId: string,

@@ -21,7 +21,6 @@ export const featureKeysPtBR = {
     channelCount_one: "{{count}} canal",
     channelCount_other: "{{count}} canais",
     none: "Nenhuma categoria ainda.",
-    manageHelp: "Toque numa categoria para renomear, mudar de lugar ou excluir.",
     manageHint: "Ordem, nomes e excluir",
     deleteTitle: "Excluir {{name}}?",
     order: "Lugar na lista",
@@ -205,6 +204,8 @@ export const featureKeysPtBR = {
     recent: "Recentes",
     /** Under Recentes' first rows: the whole list. */
     seeAll: "Ver todas as conversas",
+    /** On a large screen (the iPhone Duo open), where the open chat stands beside the list while there is none yet. */
+    splitEmpty: "Suas conversas abrem aqui.",
     wait: {
       verb: {
         approval: "precisa do seu ok",
@@ -786,9 +787,13 @@ export const featureKeysPtBR = {
       missions: "Missões",
       threads: "Threads",
     },
+    /** On a large screen (the iPhone Duo open), where the open thread stands beside the list while there is none yet. */
+    splitEmpty: "Suas threads abrem aqui.",
   },
   agents: {
     title: "Agentes",
+    /** On a large screen (the iPhone Duo open), where an agent's page stands beside the list while the team has none. */
+    splitEmpty: "As páginas dos seus agentes abrem aqui.",
     subtitle_one: "{{count}} na equipe · {{working}} trabalhando",
     subtitle_other: "{{count}} na equipe · {{working}} trabalhando",
     free: "Livre",
@@ -842,7 +847,6 @@ export const featureKeysPtBR = {
     handleMention: "Mencione @{{handle}} para chamar.",
     handleFromName: "No chat: @{{handle}}. Vem do nome, dá para mudar.",
     handleFromNameEmpty: "O @ no chat vem do nome.",
-    reviewLead: "Toque numa linha para mudar.",
     planHint: "Ou conecte o seu plano de IA: o {{name}} passa a pensar por ele, sem gastar a chave.",
     planHint_female: "Ou conecte o seu plano de IA: a {{name}} passa a pensar por ele, sem gastar a chave.",
     partly: "O agente foi criado, mas parte do que a função traz não entrou. Ajuste no perfil dele.",
@@ -1145,6 +1149,10 @@ export const featureKeysPtBR = {
     notificationsOnHint: "Também chegam no navegador e no app do computador, se estiverem ligadas lá.",
     notificationsOffHint: "Ligue para receber avisos aqui. Os tipos abaixo valem para todos os seus aparelhos.",
     notificationsKindsHint: "A Atividade guarda tudo. Vale para este workspace, em todos os seus aparelhos.",
+    /** The switch for the agents' Live Activity (the iPhone's Dynamic Island and Lock Screen, ADR 0210). */
+    liveActivity: "Agentes na ilha",
+    liveActivityHint:
+      "Quando um agente trabalha no que você pediu, ele aparece em cima da tela, em qualquer app, e na tela bloqueada. Com o app fechado, precisa do iOS 17.2 ou mais novo.",
     version: "agentes.chat · versão {{version}}",
     edit: "Editar",
     status: "Status",
@@ -1161,7 +1169,7 @@ export const featureKeysPtBR = {
     agentStyle: "Como os agentes falam",
     workspaces: "Workspaces",
     workspacesIn: "Você está em",
-    workspacesFoot: "Você continua conectado em cada um e recebe os avisos de todos. Toque num workspace para abrir.",
+    workspacesFoot: "Você continua conectado em cada um e recebe os avisos de todos.",
     workspacesUnreachable: "Sem resposta agora",
     addWorkspace: "Adicionar workspace",
     addWorkspaceCreate: "Criar um workspace novo",
@@ -1285,6 +1293,16 @@ export const featureKeysPtBR = {
       fullscreen: "Tela cheia",
       open: "Abrir",
       cantPlay: "Este vídeo não toca neste celular.",
+    },
+    talk: {
+      hint: {
+        image: "Toque onde quer comentar",
+        video: "Toque no vídeo para comentar neste momento",
+        pdf: "Toque na página para marcar um ponto",
+      },
+      markVideo: "Comentar neste momento do vídeo",
+      pdfPage: "Página {{page}} de {{count}}",
+      pdfFailed: "Não deu para mostrar este PDF.",
     },
   },
   issues: {
@@ -2283,7 +2301,6 @@ export const featureKeysPtBR = {
   },
   crash: {
     title: "Algo deu errado nesta tela",
-    subtitle: "O app achou um erro ao mostrar isto. Tente de novo.",
     retry: "Tentar de novo",
   },
   notFound: {
@@ -2314,9 +2331,6 @@ export const featureKeysPtBR = {
     deleteFailed: "Não deu para apagar o workspace. Tente de novo.",
     holdReset: "Segure para recomeçar",
     resetFailed: "Não deu para recomeçar o workspace. Tente de novo.",
-    access: {
-      how: "Toque numa linha para trocar o nível: Sem acesso, Ler, Ler e escrever.",
-    },
     logo: {
       failed: "Não deu para enviar o logo",
       tooBig: "Imagem grande demais. Tente outra.",
@@ -2581,7 +2595,7 @@ export const featureKeysPtBR = {
       sealedHelp: "Por segurança, o que foi salvo aqui não aparece mais. Para mudar, digite de novo.",
       changePassword: "Trocar senha",
       changeValue: "Trocar valor",
-      changeHelp: "Toque em Salvar para guardar. Os agentes passam a usar o novo.",
+      changeHelp: "Os agentes passam a usar o novo depois que você salvar.",
       hidden: "Oculto",
       saved: "Salvo",
       delete: "Excluir",
@@ -2727,7 +2741,7 @@ export const featureKeysPtBR = {
   },
   // Dashboards on the phone (ADR 0135); the rest of their words are the web's, `dashboards.*` and `widgets.*`.
   dashboards: {
-    homeRow: "Só você · seus próprios widgets",
+    homeRow: "Só você",
     create: "Criar",
     routineTarget: "o widget dela",
     pin: {
@@ -2811,11 +2825,11 @@ export const featureKeysPtBR = {
     },
     drive: {
       title: "Tudo o que o time cria, num lugar só",
-      text: "Relatórios, tabelas e arquivos de agentes e pessoas ficam aqui, fáceis de achar.",
+      text: "Relatórios, tabelas e arquivos de agentes e pessoas ficam aqui.",
       viewerTitle: "Encontre o que o time cria",
       viewerText: "O que agentes e pessoas criam nas conversas aparece aqui.",
       titlePersonal: "Tudo o que seus agentes criam, num lugar só",
-      textPersonal: "Relatórios, tabelas e arquivos dos seus agentes ficam aqui, fáceis de achar.",
+      textPersonal: "Relatórios, tabelas e arquivos dos seus agentes ficam aqui.",
       viewerTitlePersonal: "Encontre o que seus agentes criam",
       viewerTextPersonal: "O que os agentes criam nas suas conversas aparece aqui.",
     },
@@ -2881,7 +2895,7 @@ export const featureKeysPtBR = {
       viewerTextPersonal: "Quando alguém entrar, aparece aqui.",
     },
     chat: {
-      title: "Tudo começa com uma mensagem",
+      title: "Comece a conversa",
       text: "Escreva aqui embaixo e todo mundo aqui vê.",
       viewerTitle: "As mensagens aparecem aqui",
       viewerText: "Quando alguém escrever, você lê por aqui.",
@@ -2922,8 +2936,8 @@ export const featureKeysPtBR = {
     board: {
       title: "Veja o que importa num painel só",
       text: "Adicione um widget, peça um a um agente ou fixe um bloco do chat.",
-      viewerTitle: "Este painel está tomando forma",
-      viewerText: "Quem edita este painel adiciona os widgets, e eles aparecem aqui.",
+      viewerTitle: "Os widgets aparecem aqui",
+      viewerText: "Quem edita este painel adiciona os widgets.",
     },
     computers: {
       title: "Traga outro computador para os agentes",
@@ -2932,7 +2946,7 @@ export const featureKeysPtBR = {
       viewerText: "Quem conecta computadores adiciona os outros, e eles aparecem aqui.",
     },
     connectors: {
-      title: "Dê ferramentas de verdade aos agentes",
+      title: "Dê ferramentas aos agentes",
       text: "Conecte um serviço e eles passam a ler e agir nele.",
       viewerTitle: "As ferramentas dos agentes aparecem aqui",
       viewerText: "Quem gerencia os conectores liga os serviços abaixo.",
@@ -3085,7 +3099,7 @@ export const featureKeysPtBR = {
       done: "OK",
       placeholder: "Escreva o texto",
       titlePlaceholder: "Escreva o título",
-      hint: "Cada linha é um parágrafo. O que você escreve vai para o arquivo enquanto escreve.",
+      hint: "Cada linha é um parágrafo.",
     },
     /** Presenting. */
     show: {

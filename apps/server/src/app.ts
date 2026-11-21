@@ -1,4 +1,11 @@
-import { hostLook, MisconfiguredError, normalizeHost, requestLocale } from "@agenteschat/engine";
+import {
+  hostLook,
+  isAgentesCloud,
+  MisconfiguredError,
+  normalizeHost,
+  requestLocale,
+  ValidationError,
+} from "@agenteschat/engine";
 import { helpDocsUrl } from "@agenteschat/i18n/help";
 import { appLocale } from "@agenteschat/i18n/locale";
 import type { AgentesModule, Edition, ModuleContext } from "@agenteschat/modules";
@@ -158,7 +165,8 @@ export function createApp(options: AppOptions) {
 
   registerHealth(api, {
     version,
-    edition: options.edition,
+    // agentes.chat itself runs the self-host image: its apps must still hide what only a self-hosted server has.
+    edition: options.services && isAgentesCloud(options.services.config.PUBLIC_URL) ? "cloud" : options.edition,
     modules: options.modules.map((m) => m.name),
     pingDatabase: options.pingDatabase,
     draining: options.draining,
@@ -314,6 +322,16 @@ export function createApp(options: AppOptions) {
 
   const app = new OpenAPIHono();
   app.onError((error, c) => {
+    // A typed-in address refused for being on a private network says so in the log too: a self-hoster who meant
+    // to reach it sees which host and which settings allow it (ADR 0210).
+    if (error instanceof ValidationError && error.code === "url.internal") {
+      log.warn("outbound address refused: private network", {
+        host: error.params?.host,
+        route: routeOf(c),
+        orgId: c.req.param("orgId"),
+        allowWith: "OUTBOUND_ALLOW_HOSTS or OUTBOUND_ALLOW_CIDRS",
+      });
+    }
     const mapped = domainErrorResponse(error, c);
     if (mapped) return mapped;
     log.error("unhandled error", {

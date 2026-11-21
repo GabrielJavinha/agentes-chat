@@ -13,7 +13,7 @@
   `agentRepositoryList`, `agentOwnRepositoryList`, `taskProjectRepositoriesOf` (`git/repos.ts`); import:
   `packages/engine/src/git/github-project-sync.ts` (`githubSyncEventOf`, `queueGitHubProjectSync`,
   `handleGitHubProjectSync`, `closedIssuesOf`), `setProjectGithubImport`, route
-  `PUT …/issue-projects/{projectId}/github-import`, migration 0310
+  `PUT …/issue-projects/{projectId}/github-import`, migration 0312
 
 ## Context
 

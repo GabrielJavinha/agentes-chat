@@ -38,6 +38,7 @@ import {
   createChatToolSource,
   createClaudeCodeBrain,
   createCoAuthorToolSource,
+  createCommentToolSource,
   createConnectorToolSource,
   createContextToolSource,
   createDashboardToolSource,
@@ -72,6 +73,7 @@ import {
   createReactToolSource,
   createReleaseAsksToolSource,
   createSandboxToolSource,
+  createSayNowToolSource,
   createScheduleToolSource,
   createSessionScreening,
   createSetStatusToolSource,
@@ -466,6 +468,7 @@ export function buildEngine(o: EngineOptions) {
         rateLimiter: adapters.rateLimiter,
       }),
       createReactToolSource({ pubsub: adapters.pubsub }),
+      createSayNowToolSource({ pubsub: adapters.pubsub }),
       // A GIF or the agent's sticker when asked (ADR 0091): listed by the workspace's switches and the agent's.
       createMediaToolSource({ pubsub: adapters.pubsub, gifs: adapters.gifs ?? null }),
       // Long work goes to the background and reports back by itself, on every brain (ADR 0121).
@@ -487,6 +490,8 @@ export function buildEngine(o: EngineOptions) {
       // Spreadsheets, presentations and canvases agents edit with people, and images onto a canvas (ADR 0196, 0197);
       // pictures from the web are downloaded through the public-address guard (ADR 0196 §8).
       createLiveFileToolSource({ artifacts, live, images, web: { resolveHost: o.resolveHost } }),
+      // Comments on a picture, a video or a PDF, seen, made and resolved by the agent there (ADR 0208).
+      createCommentToolSource({ artifacts, pubsub: adapters.pubsub, judge: context.judge }),
       // Live blocks and votes in the agent's own conversation (ADR 0113).
       createBlockToolSource(artifacts),
       createChatToolSource({ pubsub: adapters.pubsub, artifacts, gif: createAgentGifPoster(adapters.gifs) }),

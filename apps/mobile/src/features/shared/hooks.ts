@@ -21,15 +21,14 @@ import { NavigationContext } from "expo-router/react-navigation";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppState, type AppStateStatus } from "react-native";
-import { useOrg } from "@/providers/org";
+import { useOrgId } from "@/providers/org";
 import { useRealtime } from "@/providers/realtime";
 import { haptics, rememberAgentLooks, useTheme, useToast } from "@/ui";
+import { usePane } from "@/ui/pane";
 import { agentLook, daysAgo, type PacedClock, pacedClock, whenKind } from "./logic";
 
-/** The current organization's id. */
-export function useOrgId(): string {
-  return useOrg().orgId;
-}
+/** The current organization's id, from its own context: a change of `me` doesn't draw its readers again. */
+export { useOrgId };
 
 /**
  * Which words the computers get here: the Cloud's or self-host's (`computerEdition`). The server's
@@ -302,11 +301,12 @@ type TransitionEvents = { addListener(event: "transitionEnd", listener: () => vo
 /**
  * False until the screen's push has ended (its stack's `transitionEnd`): what moves on it (a sky, a living face) starts
  * then, so the slide has the threads to itself. A screen shown without a slide, or outside a stack, starts after
- * `PUSH_END_MAX_MS` at the latest.
+ * `PUSH_END_MAX_MS` at the latest; one in a split's pane (ADR 0212), which nothing slides in, at once.
  */
 export function usePushEnded(): boolean {
   const navigation = useContext(NavigationContext) as unknown as TransitionEvents | undefined;
-  const [ended, setEnded] = useState(false);
+  const inPane = usePane() !== null;
+  const [ended, setEnded] = useState(inPane);
   useEffect(() => {
     if (ended) return;
     const end = () => setEnded(true);

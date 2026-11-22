@@ -11,6 +11,7 @@ import {
   PROJECT_COLORS,
   PROJECT_NAME_MAX,
   pickableProjects,
+  projectCrews,
   projectFilterOf,
   projectFilterRows,
   projectOfFilter,
@@ -105,5 +106,50 @@ describe("task projects", () => {
     const t = ((key: string) => key) as unknown as TFunction;
     const taken = new ApiError(400, "issue_project.name_taken", "A project named x already exists", { name: "x" });
     expect(knownErrorText(t, taken)).toBe("errors.issue.projectNameTaken");
+  });
+});
+
+describe("projectCrews", () => {
+  const p1 = { id: id(1), name: "Site", color: "grape", archived: false };
+  const p2 = { id: id(2), name: "App", color: "mint", archived: false };
+  const agent = (n: number) => ({ type: "agent" as const, id: `a${n}` });
+  const person = (n: number) => ({ type: "person" as const, id: `u${n}` });
+  const work = (agentId: string, state: "running" | "waiting_input" | "stalled") => ({
+    agentId,
+    runId: null,
+    state,
+    since: "2026-11-21T10:00:00.000Z",
+    steps: [],
+  });
+
+  test("everyone on a project's open tasks once, in the tasks' order; done, canceled and unfiled tasks count for none", () => {
+    const crews = projectCrews([
+      { status: "todo", project: p1, assignees: [person(1), agent(1)], work: null },
+      { status: "in_review", project: p1, assignees: [agent(1), agent(2)], work: null },
+      { status: "done", project: p1, assignees: [person(9)], work: null },
+      { status: "canceled", project: p2, assignees: [agent(9)], work: null },
+      { status: "todo", project: null, assignees: [agent(8)], work: null },
+    ]);
+    expect(crews.get(p1.id)).toEqual({ assignees: [person(1), agent(1), agent(2)] });
+    expect(crews.has(p2.id)).toBe(false);
+  });
+
+  test("the agent at work comes first, a running one over one whose work stalled", () => {
+    const crews = projectCrews([
+      { status: "in_progress", project: p1, assignees: [person(1), agent(1)], work: work("a1", "stalled") },
+      { status: "in_progress", project: p1, assignees: [agent(2)], work: work("a2", "waiting_input") },
+      { status: "in_progress", project: p2, assignees: [person(2), agent(3)], work: work("a3", "stalled") },
+    ]);
+    expect(crews.get(p1.id)).toEqual({
+      assignees: [agent(2), person(1), agent(1)],
+      working: { agentId: "a2", work: "running" },
+    });
+    expect(crews.get(p2.id)?.working).toEqual({ agentId: "a3", work: "stalled" });
+    expect(crews.get(p2.id)?.assignees[0]).toEqual(agent(3));
+  });
+
+  test("work by an agent no longer on the task is not the project's", () => {
+    const crews = projectCrews([{ status: "todo", project: p1, assignees: [person(1)], work: work("a1", "running") }]);
+    expect(crews.get(p1.id)).toEqual({ assignees: [person(1)] });
   });
 });

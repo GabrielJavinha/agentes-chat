@@ -21,7 +21,7 @@ describe("the sidebar's defaults by the workspace's mode (ADR 0159)", () => {
   test("a team's stay as they were: the default when no mode is given", () => {
     expect(sidebarSections()).toEqual(SIDEBAR_SECTIONS);
     expect(sidebarItemOrder()).toEqual(SIDEBAR_ITEMS);
-    expect(inSight(false)).toEqual(["threads", "issues", "drive", "team"]);
+    expect(inSight(false)).toEqual(["threads", "issues", "projects", "drive", "team"]);
     expect(sidebarPlace(undefined, "issues")).toBe("always");
   });
 

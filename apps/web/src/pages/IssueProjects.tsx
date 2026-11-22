@@ -36,7 +36,7 @@ import {
   MenuItem,
   Switch,
 } from "@agenteschat/ui";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFilterCopy } from "@/components/filters";
 import { LoadingLine } from "@/components/Loading";
@@ -48,15 +48,56 @@ const freeColor = (projects: IssueProjectRef[]) =>
   PROJECT_COLORS.find((c) => !projects.some((p) => p.color === c)) ?? PROJECT_COLORS[0] ?? "graphite";
 
 /**
- * "Novo projeto" and "Editar projeto": a name and one of the roles' colors. Mounted while open. `onDone` gets the
- * project as saved, so whoever opened it from a task's field can put the task in it.
+ * What a dialog shows while it closes: the last value it had, so it leaves with its words on, and a key that changes on
+ * every opening, so what was typed the last time is gone the next.
+ */
+function useWhileOpen<T>(open: boolean, value: T | undefined) {
+  const kept = useRef(value);
+  const opens = useRef(0);
+  const was = useRef(false);
+  if (value !== undefined) kept.current = value;
+  if (open && !was.current) opens.current += 1;
+  was.current = open;
+  return { kept: kept.current, key: opens.current };
+}
+
+/**
+ * "Novo projeto" and "Editar projeto": a name and one of the roles' colors. It stays mounted and closes with the kit's
+ * own motion, as every other dialog. `onDone` gets the project as saved, so whoever opened it from a task's field can
+ * put the task in it.
  */
 export function ProjectDialog({
+  open,
   project,
   onClose,
   onDone,
 }: {
+  open: boolean;
   /** The project to edit. None: a new one. */
+  project?: IssueProjectRef;
+  onClose: () => void;
+  onDone?: (project: IssueProjectRef) => void;
+}) {
+  const { t } = useTranslation();
+  const { kept, key } = useWhileOpen(open, project);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      title={t(kept ? "issues.projects.edit" : "issues.projects.new")}
+      closeLabel={t("common.close")}
+      width={440}
+    >
+      {key > 0 && <ProjectForm key={key} project={kept} onClose={onClose} onDone={onDone} />}
+    </Dialog>
+  );
+}
+
+function ProjectForm({
+  project,
+  onClose,
+  onDone,
+}: {
   project?: IssueProjectRef;
   onClose: () => void;
   onDone?: (project: IssueProjectRef) => void;
@@ -83,83 +124,77 @@ export function ProjectDialog({
     );
   };
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => !open && onClose()}
-      title={t(project ? "issues.projects.edit" : "issues.projects.new")}
-      closeLabel={t("common.close")}
-      width={440}
+    <form
+      style={{ display: "contents" }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        save();
+      }}
     >
-      <form
-        style={{ display: "contents" }}
-        onSubmit={(e) => {
-          e.preventDefault();
-          save();
-        }}
-      >
-        <Locked when={action.isPending}>
-          <DialogBody>
-            <Field label={t("rolesPage.name")} id="issue-project-name">
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={PROJECT_NAME_MAX}
-                autoComplete="off"
-                autoFocus
+      <Locked when={action.isPending}>
+        <DialogBody>
+          <Field label={t("rolesPage.name")} id="issue-project-name">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={PROJECT_NAME_MAX}
+              autoComplete="off"
+              autoFocus
+            />
+          </Field>
+          <div className="roles-colors" role="radiogroup" aria-label={t("rolesPage.color")}>
+            {PROJECT_COLORS.map((c) => (
+              // biome-ignore lint/a11y/useSemanticElements: a swatch button in a radio group
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={color === c}
+                aria-label={t("rolesPage.colorOf", { color: c })}
+                className="roles-color"
+                style={{ backgroundImage: `url("${ditherUrl(c, 8)}")` }}
+                onClick={() => setPicked(c)}
               />
-            </Field>
-            <div className="roles-colors" role="radiogroup" aria-label={t("rolesPage.color")}>
-              {PROJECT_COLORS.map((c) => (
-                // biome-ignore lint/a11y/useSemanticElements: a swatch button in a radio group
-                <button
-                  key={c}
-                  type="button"
-                  role="radio"
-                  aria-checked={color === c}
-                  aria-label={t("rolesPage.colorOf", { color: c })}
-                  className="roles-color"
-                  style={{ backgroundImage: `url("${ditherUrl(c, 8)}")` }}
-                  onClick={() => setPicked(c)}
-                />
-              ))}
-            </div>
-          </DialogBody>
-        </Locked>
-        <DialogFooter>
-          <Button type="button" onClick={onClose} disabled={action.isPending}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!name.trim() || action.isPending}
-            loading={action.isPending}
-          >
-            {project ? t("common.save") : t("issues.projects.create")}
-          </Button>
-        </DialogFooter>
-      </form>
-    </Dialog>
+            ))}
+          </div>
+        </DialogBody>
+      </Locked>
+      <DialogFooter>
+        <Button type="button" onClick={onClose} disabled={action.isPending}>
+          {t("common.cancel")}
+        </Button>
+        <Button type="submit" variant="primary" disabled={!name.trim() || action.isPending} loading={action.isPending}>
+          {project ? t("common.save") : t("issues.projects.create")}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
 
-/** "Excluir o projeto X?": its tasks stay, with no project. Mounted while open. */
+/**
+ * "Excluir o projeto X?": its tasks stay, with no project. It stays mounted and keeps the project's name while it
+ * closes, the project already gone.
+ */
 export function DeleteProjectDialog({
-  project,
+  open,
+  project: given,
   onClose,
   onDeleted,
 }: {
-  project: IssueProjectRef;
+  open: boolean;
+  project?: IssueProjectRef;
   onClose: () => void;
   onDeleted: () => void;
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const action = useIssueProjectAction(org.id);
+  const project = useWhileOpen(open, given).kept;
+  if (!project) return null;
   return (
     <Dialog
-      open
-      onOpenChange={(open) => !open && !action.isPending && onClose()}
+      open={open}
+      onOpenChange={(o) => !o && !action.isPending && onClose()}
       title={t("issues.projects.deleteTitle", { name: project.name })}
       description={t("issues.projects.deleteBody")}
       closeLabel={t("common.close")}

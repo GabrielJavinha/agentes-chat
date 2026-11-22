@@ -551,7 +551,7 @@ export function NewIssueDialog({
           {createButton}
         </DialogFooter>
       </form>
-      {newProject && <ProjectDialog onClose={() => setNewProject(false)} onDone={(p) => setProject(p.id)} />}
+      <ProjectDialog open={newProject} onClose={() => setNewProject(false)} onDone={(p) => setProject(p.id)} />
       {choosing && (
         <WhoSeesDialog
           title={t("whoSees.taskTitle")}

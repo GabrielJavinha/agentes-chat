@@ -1022,7 +1022,7 @@ function PropsLine({ issue: i }: { issue: Issue }) {
           options={projectOptions}
         />,
       )}
-      {newProject && <ProjectDialog onClose={() => setNewProject(false)} onDone={(p) => setProject(p.id)} />}
+      <ProjectDialog open={newProject} onClose={() => setNewProject(false)} onDone={(p) => setProject(p.id)} />
       {prop(
         t("issues.column"),
         <Select

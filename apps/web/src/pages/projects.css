@@ -1,0 +1,77 @@
+/*
+ * Projects (ADR 0202 §7): a card per project, three to a row, two under 980 and one on phones, as the dashboards'
+ * list. A name or a repository that is long wraps; nothing is cut.
+ */
+.projects__group {
+  display: flex;
+  flex-direction: column;
+}
+.projects__empty {
+  flex: none;
+  min-height: 0;
+}
+.projects__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 980px) {
+  .projects__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .projects__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.projects-card {
+  --stack-ring: var(--surface-raised);
+  gap: var(--space-1);
+  color: inherit;
+  text-decoration: none;
+}
+html:not([data-pointer]) .projects-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.projects-card[data-archived] {
+  background: var(--sunken);
+}
+.projects-card__title {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--ink);
+  min-width: 0;
+}
+.projects-card__name,
+.projects-card__repo-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.projects-card__meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+.projects-card__repo {
+  font-size: 13px;
+  color: var(--ink);
+  min-width: 0;
+}
+.projects-card__repo > .ac-icon {
+  color: var(--muted);
+}
+.projects-card__repo-name {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.projects-card__quiet {
+  color: var(--muted);
+}
+.projects-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}

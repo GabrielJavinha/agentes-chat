@@ -13,7 +13,9 @@
   `agentRepositoryList`, `agentOwnRepositoryList`, `taskProjectRepositoriesOf` (`git/repos.ts`); import:
   `packages/engine/src/git/github-project-sync.ts` (`githubSyncEventOf`, `queueGitHubProjectSync`,
   `handleGitHubProjectSync`, `closedIssuesOf`), `setProjectGithubImport`, route
-  `PUT …/issue-projects/{projectId}/github-import`, migration 0312
+  `PUT …/issue-projects/{projectId}/github-import`, migration 0312; the Projects page: `apps/web/src/pages/ProjectsPage.tsx`
+  (route `org.$orgId.projects.index.tsx`), `projectCrews` (`packages/client/src/lib/issue-projects.ts`), the sidebar's
+  `projects` (`packages/engine/src/sidebar-items.ts` and its mirror `packages/client/src/lib/sidebar-items.ts`)
 
 ## Context
 
@@ -118,9 +120,21 @@ agents hear (ADR 0156), since one delivery may be both.
 - The tasks are seen by the whole workspace, whatever the repository's own visibility on GitHub: an administrator
   chose to bring that repository's issues in.
 
+### 7. A page of projects
+
+Projects have a page of their own, "Projetos", a tool of the sidebar right after Tarefas (`projects` in the sidebar's
+items: in the list by default in a team's workspace, in More in a personal one, ADR 0159), and in Go to. It shows a
+card per project in use, by name: its color and name, how many open tasks the reader sees in it, its main repository
+and how many more ("Sem repositório" when it has none), the people and agents on its open tasks, the agent at work
+first (`projectCrews`, from the tasks the reader already lists), and whether its GitHub issues are imported. A card
+opens the project's board, which stays where it was (`/issues?project=`): the page adds a way in, it moves nothing.
+Archived projects wait under their heading, folded until "Mostrar arquivados". With no project in use the page is an
+empty state that says what a project is and offers "Novo projeto", for whoever may post. It reads only what the
+projects menu and the board already read, so the server is unchanged.
+
 ## Not in this change
 
-- The phone shows nothing of a project's repositories yet.
+- The phone shows nothing of a project's repositories yet, nor the Projects page.
 - An agent's own list and a project's repositories are separate lists: picking repositories for a project changes no
   agent's settings.
 - Issues already open when the import is turned on: only what GitHub sends from then on is imported.

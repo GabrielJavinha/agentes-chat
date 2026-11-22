@@ -433,19 +433,22 @@ export function IssuesPage() {
           columns={columns ?? []}
           onClose={() => setCreating(false)}
         />
-        {projectDialog === "new" && (
-          <ProjectDialog onClose={() => setProjectDialog(null)} onDone={(p) => setProjectParam(p.id)} />
-        )}
-        {projectDialog === "edit" && project && (
-          <ProjectDialog project={project} onClose={() => setProjectDialog(null)} />
-        )}
-        {projectDialog === "delete" && project && (
-          <DeleteProjectDialog
-            project={project}
-            onClose={() => setProjectDialog(null)}
-            onDeleted={() => setProjectParam(undefined)}
-          />
-        )}
+        <ProjectDialog
+          open={projectDialog === "new"}
+          onClose={() => setProjectDialog(null)}
+          onDone={(p) => setProjectParam(p.id)}
+        />
+        <ProjectDialog
+          open={projectDialog === "edit" && !!project}
+          project={project ?? undefined}
+          onClose={() => setProjectDialog(null)}
+        />
+        <DeleteProjectDialog
+          open={projectDialog === "delete" && !!project}
+          project={project ?? undefined}
+          onClose={() => setProjectDialog(null)}
+          onDeleted={() => setProjectParam(undefined)}
+        />
         {columns && (
           <AddColumnDialog
             open={addingColumn}

@@ -5309,6 +5309,9 @@
   "shell.moreWhat.issues": {
     "value": "The team's work, for people and agents"
   },
+  "shell.moreWhat.projects": {
+    "value": "Tasks grouped by project, and their repositories"
+  },
   "shell.moreWhat.wiki": {
     "value": "What the team knows, written for everyone"
   },
@@ -5341,6 +5344,9 @@
   },
   "shell.moreWhat.issuesPersonal": {
     "value": "Your to-dos and your agents'"
+  },
+  "shell.moreWhat.projectsPersonal": {
+    "value": "Your projects and each one's repositories"
   },
   "shell.moreWhat.wikiPersonal": {
     "value": "Notes your agents can read"
@@ -5635,6 +5641,9 @@
   },
   "shell.issues": {
     "value": "Tasks"
+  },
+  "shell.projects": {
+    "value": "Projects"
   },
   "shell.missionsWaiting": {
     "value": {
@@ -19935,6 +19944,42 @@
   },
   "issues.projects.empty": {
     "value": "No tasks in this project yet."
+  },
+  "issues.projects.page.title": {
+    "value": "Projects"
+  },
+  "issues.projects.page.subtitle": {
+    "value": "The team's tasks grouped, each project with its repositories"
+  },
+  "issues.projects.page.open": {
+    "value": {
+      "one": "{{count}} open task",
+      "other": "{{count}} open tasks"
+    }
+  },
+  "issues.projects.page.noOpen": {
+    "value": "No open tasks"
+  },
+  "issues.projects.page.noRepo": {
+    "value": "No repository"
+  },
+  "issues.projects.page.moreRepos": {
+    "value": {
+      "one": "+{{count}} repository",
+      "other": "+{{count}} repositories"
+    }
+  },
+  "issues.projects.page.showArchived": {
+    "value": "Show archived"
+  },
+  "issues.projects.page.hideArchived": {
+    "value": "Hide archived"
+  },
+  "issues.projects.page.firstTitle": {
+    "value": "No projects yet"
+  },
+  "issues.projects.page.firstText": {
+    "value": "A project gathers the tasks of one piece of work and tells agents which repositories to work in."
   },
   "issues.projects.repos.label": {
     "value": "Repositories"
@@ -37610,6 +37655,15 @@
   },
   "errors.issue.projectsFull": {
     "value": "A workspace holds at most {{max}} projects. Delete one first."
+  },
+  "errors.issue.projectAdminOnly": {
+    "value": "Only an administrator links repositories to a project or imports its issues."
+  },
+  "errors.issue.projectRepoInvalid": {
+    "value": "One of the repositories isn't in the owner/name format."
+  },
+  "errors.issue.projectReposFull": {
+    "value": "A project works on at most {{max}} repositories. Unlink one first."
   },
   "errors.issue.stageFull": {
     "value": "A stage holds at most {{max}} columns. Delete one of its columns first."

@@ -7936,6 +7936,19 @@
         "firstTitle": "Belum ada proyek",
         "firstText": "Proyek mengumpulkan tugas dari satu pekerjaan dan memberi tahu agen di repositori mana harus bekerja."
       },
+      "overview": {
+        "link": "Ringkasan",
+        "openBoard": "Buka papan",
+        "done_other": "{{done}} dari {{count}} tugas selesai",
+        "stages": "Tahap",
+        "attention": "Perlu perhatian",
+        "late": "Terlambat sejak {{date}}",
+        "people": "Siapa yang mengerjakan",
+        "nobody": "Tidak ada yang mengerjakan tugas terbuka",
+        "working": "Sedang bekerja",
+        "stalled": "Berhenti di tengah",
+        "recent": "Terakhir diubah"
+      },
       "repos": {
         "label": "Repositori",
         "main": "Utama",

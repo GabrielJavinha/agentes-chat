@@ -8220,6 +8220,20 @@
         "firstTitle": "Noch keine Projekte",
         "firstText": "Ein Projekt bündelt die Aufgaben einer Arbeit und sagt den Agenten, in welchen Repositorys sie arbeiten."
       },
+      "overview": {
+        "link": "Übersicht",
+        "openBoard": "Board öffnen",
+        "done_one": "{{done}} von {{count}} Aufgabe erledigt",
+        "done_other": "{{done}} von {{count}} Aufgaben erledigt",
+        "stages": "Phasen",
+        "attention": "Braucht Aufmerksamkeit",
+        "late": "Überfällig seit {{date}}",
+        "people": "Wer daran arbeitet",
+        "nobody": "Niemand an den offenen Aufgaben",
+        "working": "Arbeitet gerade",
+        "stalled": "Mittendrin gestoppt",
+        "recent": "Zuletzt geändert"
+      },
       "repos": {
         "label": "Repositorys",
         "main": "Haupt-Repository",

@@ -115,7 +115,7 @@ import { AssigneeFaces } from "./IssueAssignees";
 import { AddColumnDialog, Board, type CardState, type IssueGroup, useMoveIssue, usePatchIssue } from "./IssueBoard";
 import { IssueDeleteProvider, useIssueDeleting } from "./IssueDelete";
 import { IssueDialog } from "./IssuePage";
-import { DeleteProjectDialog, ProjectChip, ProjectDialog, ProjectRepositories } from "./IssueProjects";
+import { DeleteProjectDialog, ProjectChip, ProjectDialog } from "./IssueProjects";
 import { DisplayButton, IssueFilters, PRIORITY_ICON } from "./IssuesToolbar";
 import { type CardMove, type DropResult, type IssueDrag, useIssueDrag } from "./issue-drag";
 import { NewIssueDialog } from "./NewIssueDialog";
@@ -262,16 +262,27 @@ export function IssuesPage() {
               </>
             }
             actions={
-              // The empty state takes over this button: one way in, in the middle of the page.
-              !noIssues &&
-              adds && (
-                <Button variant="primary" icon="plus" kbd={["N"]} onClick={() => setCreating({ columnId: null })}>
-                  {t("issues.new")}
-                </Button>
+              (project || (!noIssues && adds)) && (
+                <span className="ac-acts">
+                  {/* A project's repositories and what needs care live on its overview (ADR 0202 §8). */}
+                  {project && (
+                    <Button asChild>
+                      <Link to="/org/$orgId/projects/$projectId" params={{ orgId: org.id, projectId: project.id }}>
+                        <Icon name="layers" />
+                        <span className="ac-btn__label">{t("issues.projects.overview.link")}</span>
+                      </Link>
+                    </Button>
+                  )}
+                  {/* The empty state takes over this button: one way in, in the middle of the page. */}
+                  {!noIssues && adds && (
+                    <Button variant="primary" icon="plus" kbd={["N"]} onClick={() => setCreating({ columnId: null })}>
+                      {t("issues.new")}
+                    </Button>
+                  )}
+                </span>
               )
             }
           />
-          {project && <ProjectRepositories project={project} />}
           <StalledNow issues={all} onOpen={toggle} />
           <Toolbar
             label={t("issues.filters")}
@@ -687,7 +698,7 @@ function IssuesBody({
  * Above the board, only the stalled tasks (in progress, no run alive), as one line: an agent at work already shows on
  * its own card on the board, so the strip says only what needs a person, a nudge. Nothing stalled, no strip.
  */
-function StalledNow({ issues, onOpen }: { issues: Issue[]; onOpen: (n: number) => void }) {
+export function StalledNow({ issues, onOpen }: { issues: Issue[]; onOpen: (n: number) => void }) {
   const { t } = useTranslation();
   const stalled = issues.filter((i) => isOpen(i) && isStalled(i) && i.work);
   if (stalled.length === 0) return null;

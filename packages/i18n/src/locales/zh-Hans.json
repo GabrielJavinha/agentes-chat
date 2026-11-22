@@ -7946,6 +7946,19 @@
         "firstTitle": "还没有项目",
         "firstText": "项目把同一项工作的任务归到一起，并告诉智能体在哪些仓库里工作。"
       },
+      "overview": {
+        "link": "概览",
+        "openBoard": "打开看板",
+        "done_other": "{{count}} 个任务中已完成 {{done}} 个",
+        "stages": "阶段",
+        "attention": "需要关注",
+        "late": "自 {{date}} 起逾期",
+        "people": "谁在做",
+        "nobody": "未完成的任务没有负责人",
+        "working": "正在工作",
+        "stalled": "中途停下",
+        "recent": "最近更新"
+      },
       "repos": {
         "label": "仓库",
         "main": "主仓库",

@@ -8258,6 +8258,20 @@
         "firstTitle": "Nog geen projecten",
         "firstText": "Een project bundelt de taken van één klus en vertelt agents in welke repository's ze moeten werken."
       },
+      "overview": {
+        "link": "Overzicht",
+        "openBoard": "Bord openen",
+        "done_one": "{{done}} van {{count}} taak klaar",
+        "done_other": "{{done}} van {{count}} taken klaar",
+        "stages": "Fasen",
+        "attention": "Vraagt aandacht",
+        "late": "Te laat sinds {{date}}",
+        "people": "Wie eraan werkt",
+        "nobody": "Niemand op de open taken",
+        "working": "Nu aan het werk",
+        "stalled": "Halverwege gestopt",
+        "recent": "Laatst gewijzigd"
+      },
       "repos": {
         "label": "Repository's",
         "main": "Hoofdrepository",

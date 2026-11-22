@@ -8808,6 +8808,22 @@
         "firstTitle": "Nie ma jeszcze projektów",
         "firstText": "Projekt zbiera zadania jednej pracy i mówi agentom, w których repozytoriach mają pracować."
       },
+      "overview": {
+        "link": "Przegląd",
+        "openBoard": "Otwórz tablicę",
+        "done_one": "{{done}} z {{count}} zadania gotowe",
+        "done_few": "{{done}} z {{count}} zadań gotowe",
+        "done_many": "{{done}} z {{count}} zadań gotowe",
+        "done_other": "{{done}} z {{count}} zadania gotowe",
+        "stages": "Etapy",
+        "attention": "Wymaga uwagi",
+        "late": "Opóźnione od {{date}}",
+        "people": "Kto nad nim pracuje",
+        "nobody": "Nikt nie ma otwartych zadań",
+        "working": "Teraz pracuje",
+        "stalled": "Zatrzymało się w połowie",
+        "recent": "Ostatnio zmienione"
+      },
       "repos": {
         "label": "Repozytoria",
         "main": "Główne",

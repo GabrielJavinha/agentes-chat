@@ -19981,6 +19981,42 @@
   "issues.projects.page.firstText": {
     "value": "A project gathers the tasks of one piece of work and tells agents which repositories to work in."
   },
+  "issues.projects.overview.link": {
+    "value": "Overview"
+  },
+  "issues.projects.overview.openBoard": {
+    "value": "Open board"
+  },
+  "issues.projects.overview.done": {
+    "value": {
+      "one": "{{done}} of {{count}} task done",
+      "other": "{{done}} of {{count}} tasks done"
+    }
+  },
+  "issues.projects.overview.stages": {
+    "value": "Stages"
+  },
+  "issues.projects.overview.attention": {
+    "value": "Needs attention"
+  },
+  "issues.projects.overview.late": {
+    "value": "Late since {{date}}"
+  },
+  "issues.projects.overview.people": {
+    "value": "Who works on it"
+  },
+  "issues.projects.overview.nobody": {
+    "value": "Nobody on the open tasks"
+  },
+  "issues.projects.overview.working": {
+    "value": "Working now"
+  },
+  "issues.projects.overview.stalled": {
+    "value": "Stopped midway"
+  },
+  "issues.projects.overview.recent": {
+    "value": "Updated last"
+  },
   "issues.projects.repos.label": {
     "value": "Repositories"
   },

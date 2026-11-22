@@ -8179,6 +8179,20 @@
         "firstTitle": "Henüz proje yok",
         "firstText": "Bir proje aynı işin görevlerini bir araya getirir ve ajanlara hangi depolarda çalışacaklarını söyler."
       },
+      "overview": {
+        "link": "Özet",
+        "openBoard": "Panoyu aç",
+        "done_one": "{{count}} görevden {{done}} tanesi bitti",
+        "done_other": "{{count}} görevden {{done}} tanesi bitti",
+        "stages": "Aşamalar",
+        "attention": "İlgi bekliyor",
+        "late": "{{date}} tarihinden beri gecikmiş",
+        "people": "Kimler çalışıyor",
+        "nobody": "Açık görevlerde kimse yok",
+        "working": "Şu an çalışıyor",
+        "stalled": "Yarıda durdu",
+        "recent": "Son değişenler"
+      },
       "repos": {
         "label": "Depolar",
         "main": "Ana depo",

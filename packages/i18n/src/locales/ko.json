@@ -7906,6 +7906,19 @@
         "firstTitle": "아직 프로젝트가 없습니다",
         "firstText": "프로젝트는 한 가지 일의 작업을 모으고, 에이전트에게 어느 저장소에서 일할지 알려 줍니다."
       },
+      "overview": {
+        "link": "개요",
+        "openBoard": "보드 열기",
+        "done_other": "작업 {{count}}개 중 {{done}}개 완료",
+        "stages": "단계",
+        "attention": "확인 필요",
+        "late": "{{date}}부터 지연",
+        "people": "작업하는 사람",
+        "nobody": "열린 작업에 담당자가 없습니다",
+        "working": "지금 작업 중",
+        "stalled": "중간에 멈춤",
+        "recent": "최근 변경"
+      },
       "repos": {
         "label": "저장소",
         "main": "기본",

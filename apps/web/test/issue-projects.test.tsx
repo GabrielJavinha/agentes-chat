@@ -380,7 +380,7 @@ describe("Tarefas: projects", () => {
   });
 });
 
-describe("Tarefas: a project's GitHub repositories (ADR 0202)", () => {
+describe("A project's GitHub repositories, on its overview (ADR 0202)", () => {
   const listing = {
     connected: true,
     truncated: false,
@@ -396,11 +396,27 @@ describe("Tarefas: a project's GitHub repositories (ADR 0202)", () => {
     ],
   };
   const reposLine = () => document.querySelector<HTMLElement>(".agp-repos");
+  const overview = async (api: ReturnType<typeof createFakeApi>, projectId: string) => {
+    const r = await renderApp(`/org/${ORG_ID}/projects/${projectId}`, { api });
+    await settle(8);
+    return r;
+  };
+
+  test("a project's board holds no repositories, and links to the overview that does", async () => {
+    const { api, clinic } = await withProjects();
+    await api.issues.setProjectRepositories(ORG_ID, clinic.id, ["acme/api"]);
+    const { router } = await go(api, `?project=${clinic.id}`);
+    expect(reposLine()).toBeNull();
+    await click(screen().getByRole("link", { name: "Visão geral" }));
+    await settle(8);
+    expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/projects/${clinic.id}`);
+    expect((reposLine() as HTMLElement).textContent).toContain("acme/api");
+  });
 
   test("an administrator links them in the order checked, and the first is marked the main one", async () => {
     const { state, api, clinic } = await withProjects();
     state.githubRepos = listing;
-    await go(api, `?project=${clinic.id}`);
+    await overview(api, clinic.id);
     await click(within(reposLine() as HTMLElement).getByRole("button", { name: "Vincular repositório" }));
     await settle(5);
     const dialog = screen().getByRole("dialog");
@@ -420,31 +436,31 @@ describe("Tarefas: a project's GitHub repositories (ADR 0202)", () => {
     state.githubRepos = listing;
     await api.issues.setProjectRepositories(ORG_ID, clinic.id, ["acme/api"]);
     meWithRole(state, ["post"]);
-    await go(api, `?project=${clinic.id}`);
+    await overview(api, clinic.id);
     const line = reposLine() as HTMLElement;
     expect(line.textContent).toContain("acme/api");
     expect(within(line).queryByRole("button", { name: "Mudar" })).toBeNull();
     cleanup();
-    await go(api, `?project=${bakery.id}`);
+    await overview(api, bakery.id);
     expect(reposLine()).toBeNull();
   });
 
   test("Importar issues do GitHub: an administrator's switch once there are repositories; others see it is on", async () => {
     const { state, api, clinic } = await withProjects();
     state.githubRepos = listing;
-    await go(api, `?project=${clinic.id}`);
+    await overview(api, clinic.id);
     // No repository yet: nothing to import from.
     expect(screen().queryByRole("switch", { name: /Importar issues do GitHub/ })).toBeNull();
     cleanup();
     await api.issues.setProjectRepositories(ORG_ID, clinic.id, ["acme/api"]);
-    await go(api, `?project=${clinic.id}`);
+    await overview(api, clinic.id);
     await click(screen().getByRole("switch", { name: /Importar issues do GitHub/ }));
     await settle(5);
     const calls = state.calls.filter((c) => c.method === "issues.setProjectGithubImport");
     expect(calls.map((c) => c.args)).toEqual([[clinic.id, true]]);
     cleanup();
     meWithRole(state, ["post"]);
-    await go(api, `?project=${clinic.id}`);
+    await overview(api, clinic.id);
     expect(screen().queryByRole("switch")).toBeNull();
     expect((reposLine() as HTMLElement).textContent).toContain("Issues do GitHub viram tarefas");
   });

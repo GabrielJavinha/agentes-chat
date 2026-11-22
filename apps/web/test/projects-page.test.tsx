@@ -98,13 +98,12 @@ describe("Projetos", () => {
     (globalThis as { geometrySnapshot?: () => void }).geometrySnapshot?.();
   });
 
-  test("a card opens the project's board", async () => {
+  test("a card opens the project's overview", async () => {
     const { api, clinic } = await withProjects();
     const { router } = await go(api);
     await click(cardNamed("Clínica Teo"));
     await settle(6);
-    expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/issues`);
-    expect((router.state.location.search as { project?: string }).project).toBe(clinic.id);
+    expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/projects/${clinic.id}`);
   });
 
   test("the archived ones wait under their heading, folded, and open on a click", async () => {

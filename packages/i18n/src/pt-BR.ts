@@ -8646,6 +8646,21 @@ export const ptBR = {
         firstText:
           "Um projeto junta as tarefas de um mesmo trabalho e diz aos agentes em quais repositórios trabalhar.",
       },
+      /** A project's overview (ADR 0202 §8): its stages, what needs care, who works on it, what changed last. */
+      overview: {
+        link: "Visão geral",
+        openBoard: "Abrir quadro",
+        done_one: "{{done}} de {{count}} tarefa concluída",
+        done_other: "{{done}} de {{count}} tarefas concluídas",
+        stages: "Etapas",
+        attention: "Precisa de atenção",
+        late: "Atrasada desde {{date}}",
+        people: "Quem trabalha nele",
+        nobody: "Ninguém nas tarefas abertas",
+        working: "Trabalhando agora",
+        stalled: "Parou no meio",
+        recent: "Atualizadas por último",
+      },
       /** The GitHub repositories a project works on (ADR 0202): the line under a project board's title and its dialog. */
       repos: {
         label: "Repositórios",

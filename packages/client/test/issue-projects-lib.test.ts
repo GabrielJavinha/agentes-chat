@@ -15,6 +15,8 @@ import {
   projectFilterOf,
   projectFilterRows,
   projectOfFilter,
+  projectOverview,
+  RECENT_MAX,
 } from "../src/lib/issue-projects";
 import { ISSUE_CARD_FIELDS, ISSUES_VIEW_DEFAULT, isDefaultIssuesView } from "../src/lib/issues-view";
 
@@ -151,5 +153,114 @@ describe("projectCrews", () => {
   test("work by an agent no longer on the task is not the project's", () => {
     const crews = projectCrews([{ status: "todo", project: p1, assignees: [person(1)], work: work("a1", "running") }]);
     expect(crews.get(p1.id)).toEqual({ assignees: [person(1)] });
+  });
+});
+
+describe("projectOverview", () => {
+  const now = new Date("2026-11-21T12:00:00");
+  const agent = (n: number) => ({ type: "agent" as const, id: `a${n}` });
+  const person = (n: number) => ({ type: "person" as const, id: `u${n}` });
+  type T = Parameters<typeof projectOverview>[0][number];
+  let n = 0;
+  const task = (over: Partial<T> = {}): T => {
+    n += 1;
+    return {
+      id: `t${n}`,
+      status: "todo",
+      assignees: [],
+      work: null,
+      dueDate: null,
+      blocked: null,
+      updatedAt: `2026-11-${String(n).padStart(2, "0")}T10:00:00.000Z`,
+      ...over,
+    };
+  };
+  const work = (agentId: string, state: "running" | "stalled") => ({
+    agentId,
+    runId: null,
+    state,
+    since: "2026-11-21T10:00:00.000Z",
+    steps: [],
+  });
+
+  test("the stages count every task but the canceled ones, in the board's order", () => {
+    const o = projectOverview(
+      [
+        task(),
+        task({ status: "in_progress" }),
+        task({ status: "in_progress" }),
+        task({ status: "done" }),
+        task({ status: "canceled" }),
+      ],
+      now,
+    );
+    expect(o.stages).toEqual([
+      { stage: "todo", count: 1 },
+      { stage: "in_progress", count: 2 },
+      { stage: "in_review", count: 0 },
+      { stage: "done", count: 1 },
+    ]);
+    expect([o.total, o.done]).toEqual([4, 1]);
+  });
+
+  test("late are open tasks past their day, the longest overdue first; today's and a done one's aren't", () => {
+    const old = task({ dueDate: "2026-11-02" });
+    const newer = task({ dueDate: "2026-11-19", status: "in_review" });
+    const o = projectOverview(
+      [newer, task({ dueDate: "2026-11-21" }), task({ dueDate: "2026-11-01", status: "done" }), old],
+      now,
+    );
+    expect(o.late.map((i) => i.id)).toEqual([old.id, newer.id]);
+  });
+
+  test("blocked are open tasks whose work stopped on something, the longest stopped first", () => {
+    const since = (d: string) => ({ reason: "approval", since: d });
+    const later = task({ blocked: since("2026-11-20T10:00:00.000Z") });
+    const first = task({ blocked: since("2026-11-18T10:00:00.000Z") });
+    const o = projectOverview(
+      [later, task({ status: "done", blocked: since("2026-11-01T10:00:00.000Z") }), first],
+      now,
+    );
+    expect(o.blocked.map((i) => i.id)).toEqual([first.id, later.id]);
+  });
+
+  test("who is on it: open tasks only, the agent at work first, a stalled one next, then by how many", () => {
+    const o = projectOverview(
+      [
+        task({ assignees: [person(1), agent(2)] }),
+        task({ assignees: [person(1)] }),
+        task({ assignees: [agent(3)], work: work("a3", "stalled") }),
+        task({ assignees: [agent(4), person(1)], work: work("a4", "running") }),
+        task({ assignees: [person(5)], status: "done" }),
+        // Work by an agent that isn't on the task says nothing of the task's people.
+        task({ assignees: [person(6)], work: work("a9", "running") }),
+      ],
+      now,
+    );
+    expect(o.members.map((m) => [m.actor.id, m.open, m.work])).toEqual([
+      ["a4", 1, "running"],
+      ["a3", 1, "stalled"],
+      ["u1", 3, undefined],
+      ["a2", 1, undefined],
+      ["u6", 1, undefined],
+    ]);
+  });
+
+  test("recent: the tasks changed last, done and canceled too, at most eight", () => {
+    const list = Array.from({ length: 12 }, (_, k) => task({ status: k % 3 === 0 ? "done" : "todo" }));
+    const o = projectOverview(list, now);
+    expect(o.recent).toHaveLength(RECENT_MAX);
+    expect(o.recent.map((i) => i.id)).toEqual(
+      list
+        .slice(-RECENT_MAX)
+        .reverse()
+        .map((i) => i.id),
+    );
+  });
+
+  test("a project with no task: empty stages and lists", () => {
+    const o = projectOverview([], now);
+    expect(o.stages.every((s) => s.count === 0)).toBe(true);
+    expect([o.total, o.late, o.blocked, o.members, o.recent]).toEqual([0, [], [], [], []]);
   });
 });

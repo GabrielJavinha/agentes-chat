@@ -11516,6 +11516,10 @@ html:not([data-pointer]) .agp-asks__see:focus-visible {
   font-size: 13px;
   line-height: 18px;
 }
+/* "Issues do GitHub viram tarefas", for whoever can't change it: a label as wide as its words, never the column's. */
+.agp-repos > .ac-chip {
+  align-self: flex-start;
+}
 /* One setting, one line: what it is (the rest behind its ⓘ), what is chosen, the way to change it. */
 .agp-repos__line {
   display: flex;

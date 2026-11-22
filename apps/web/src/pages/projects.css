@@ -75,3 +75,55 @@ html:not([data-pointer]) .projects-card:focus-visible {
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
+
+/*
+ * A project's overview (ADR 0202 §8): its groups 24 apart (`.ac-groups`), each a heading 8 over its list. A task's
+ * title takes the row and wraps whole; its stage and note end the row, under it when there's no room.
+ */
+.project-overview__group {
+  display: flex;
+  flex-direction: column;
+}
+.project-overview__quiet {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.project-task__title {
+  flex: 1 1 240px;
+  min-width: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.project-task__num {
+  color: var(--muted);
+}
+.project-task__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+/* A face beside one line centres on it. */
+.project-member__who {
+  display: flex;
+  align-items: center;
+  flex: 1 1 200px;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.project-member__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.project-member__meta {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+.project-member__meta [data-work="running"] {
+  color: var(--ink);
+}

@@ -46,13 +46,13 @@ its repositories (§4) and may come to reach them (§5): linking one decides whe
 administrator's call, as giving an agent more repositories is. Every change is audited as
 `issue.project_repositories_changed` with the list before and after.
 
-### 3. The board shows them
+### 3. The project's overview shows them
 
-Under a project board's title, "Repositórios" lists them as chips, the main one first and marked. A chip's menu opens
+On the project's overview (§8), "Repositórios" lists them as chips, the main one first and marked. A chip's menu opens
 it on GitHub and, for an administrator, makes it the main one or unlinks it. "Vincular repositório" (or "Mudar")
 opens a picker of what the workspace's GitHub reaches (`GET …/github/repositories`) by account, with a search, where
-the order of checking is the order kept. A board whose project has none shows nothing to anyone but an
-administrator.
+the order of checking is the order kept. A project that has none shows nothing there to anyone but an
+administrator. They first sat under the project board's title; the board now links to the overview instead.
 
 ### 4. The agents' context
 
@@ -127,14 +127,33 @@ items: in the list by default in a team's workspace, in More in a personal one, 
 card per project in use, by name: its color and name, how many open tasks the reader sees in it, its main repository
 and how many more ("Sem repositório" when it has none), the people and agents on its open tasks, the agent at work
 first (`projectCrews`, from the tasks the reader already lists), and whether its GitHub issues are imported. A card
-opens the project's board, which stays where it was (`/issues?project=`): the page adds a way in, it moves nothing.
+opens the project's overview (§8).
 Archived projects wait under their heading, folded until "Mostrar arquivados". With no project in use the page is an
 empty state that says what a project is and offers "Novo projeto", for whoever may post. It reads only what the
 projects menu and the board already read, so the server is unchanged.
 
+### 8. A project's overview
+
+Each project has an overview at `/projects/<id>`, the way in from its card. Its header holds the project's name, how
+many of its tasks are done (a canceled one counts in none), "Abrir quadro" for its board (`/issues?project=`, which
+stays where it was) and, for whoever may post, a menu to edit, archive or delete it. Below come its repositories and
+the import (§3, §6), the stalled work the board also shows, then, from the project's own tasks (`projectOverview`):
+
+- "Etapas": its tasks in each of the board's stages.
+- "Precisa de atenção": its open tasks past their due day, the longest overdue first, then the ones whose background
+  work stopped on something (ADR 0121), each saying why; a list only when there are some.
+- "Quem trabalha nele": the people and agents on its open tasks with how many each, the agent at work first, then one
+  that stopped midway, then by how many.
+- "Atualizadas por último": the tasks changed last, at most eight, each with its stage and when.
+
+Each task opens its own page. A project with no task says so once. A project that is gone, deleted from this page or
+elsewhere, sends the reader back to the projects. The project's board links here ("Visão geral"). It reads only the
+project's tasks as the board does, so the server is unchanged.
+
 ## Not in this change
 
-- The phone shows nothing of a project's repositories yet, nor the Projects page.
+- The phone shows nothing of a project's repositories yet, nor the Projects page or a project's overview.
+- A project's own history: its overview lists the tasks changed last, not what changed on each (that is on the task).
 - An agent's own list and a project's repositories are separate lists: picking repositories for a project changes no
   agent's settings.
 - Issues already open when the import is turned on: only what GitHub sends from then on is imported.

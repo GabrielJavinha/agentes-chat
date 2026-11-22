@@ -8531,6 +8531,21 @@
         "firstTitle": "Ancora nessun progetto",
         "firstText": "Un progetto riunisce le attività di uno stesso lavoro e dice agli agenti in quali repository lavorare."
       },
+      "overview": {
+        "link": "Panoramica",
+        "openBoard": "Apri la bacheca",
+        "done_one": "{{done}} di {{count}} attività completata",
+        "done_many": "{{done}} di {{count}} attività completate",
+        "done_other": "{{done}} di {{count}} attività completate",
+        "stages": "Fasi",
+        "attention": "Richiede attenzione",
+        "late": "In ritardo dal {{date}}",
+        "people": "Chi ci lavora",
+        "nobody": "Nessuno sulle attività aperte",
+        "working": "Al lavoro ora",
+        "stalled": "Fermo a metà",
+        "recent": "Modificate per ultime"
+      },
       "repos": {
         "label": "Repository",
         "main": "Principale",

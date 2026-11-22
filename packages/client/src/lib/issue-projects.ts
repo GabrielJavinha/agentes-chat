@@ -1,7 +1,7 @@
 import { AGENT_COLORS } from "@agenteschat/tokens/look";
-import type { Actor, Issue, IssueProject, IssueProjectRef } from "../api/types";
-import { isUuid } from "./format";
-import { isOpen } from "./issues";
+import type { Actor, Issue, IssueProject, IssueProjectRef, IssueStatus } from "../api/types";
+import { dueTone, isUuid } from "./format";
+import { BOARD, isOpen, isStalled } from "./issues";
 
 /** A project's name holds at most this (mirror of `PROJECT_NAME_MAX`, packages/engine/src/issue-projects.ts). */
 export const PROJECT_NAME_MAX = 80;
@@ -76,4 +76,75 @@ export function projectCrews(issues: Pick<Issue, "status" | "project" | "assigne
     if (at > 0) crew.assignees.unshift(...crew.assignees.splice(at, 1));
   }
   return crews;
+}
+
+/** One person or agent on a project's open tasks: those tasks, and whether that agent works on one now. */
+export interface ProjectMember {
+  actor: Actor;
+  open: number;
+  /** An agent whose run on one of these tasks is alive (`running`) or stopped (`stalled`). */
+  work?: "running" | "stalled";
+}
+
+/** What a project's overview shows, from its own tasks (`useIssues` with the project's id). */
+export interface ProjectOverview {
+  /** The board's stages in order, each with its tasks; a canceled task counts in none. */
+  stages: { stage: IssueStatus; count: number }[];
+  /** Every task but the canceled ones, and the done ones among them. */
+  total: number;
+  done: number;
+  /** Open tasks past their due date, the longest overdue first. */
+  late: Pick<Issue, "id">[];
+  /** Open tasks whose background work stopped on something (ADR 0121), the longest stopped first. */
+  blocked: Pick<Issue, "id">[];
+  /** Who has open tasks: the agent at work first, then by how many, then in the tasks' order. */
+  members: ProjectMember[];
+  /** The tasks changed most recently, at most `RECENT_MAX`. */
+  recent: Pick<Issue, "id">[];
+}
+
+/** How many recently changed tasks an overview lists. */
+export const RECENT_MAX = 8;
+
+type OverviewIssue = Pick<Issue, "id" | "status" | "assignees" | "work" | "dueDate" | "blocked" | "updatedAt">;
+
+/** A project's overview, from its tasks: its stages, its late and blocked tasks, who is on it and what changed last. */
+export function projectOverview<T extends OverviewIssue>(issues: T[], now = new Date()) {
+  const counted = issues.filter((i) => i.status !== "canceled");
+  const open = issues.filter(isOpen);
+  const late = open
+    .filter((i) => i.dueDate && dueTone(i.dueDate, now) === "late")
+    .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? ""));
+  const blocked = open
+    .filter((i) => i.blocked)
+    .sort((a, b) => (a.blocked?.since ?? "").localeCompare(b.blocked?.since ?? ""));
+  const members: ProjectMember[] = [];
+  for (const issue of open) {
+    const work = issue.work;
+    for (const actor of issue.assignees) {
+      let m = members.find((x) => x.actor.type === actor.type && x.actor.id === actor.id);
+      if (!m) {
+        m = { actor, open: 0 };
+        members.push(m);
+      }
+      m.open += 1;
+      if (actor.type === "agent" && work?.agentId === actor.id) {
+        const state = isStalled(issue) ? "stalled" : "running";
+        if (m.work !== "running") m.work = state;
+      }
+    }
+  }
+  const rank = (m: ProjectMember) => (m.work === "running" ? 0 : m.work === "stalled" ? 1 : 2);
+  // A stable sort: who comes first among equals is whoever comes first in the tasks.
+  members.sort((a, b) => rank(a) - rank(b) || b.open - a.open);
+  const recent = [...issues].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, RECENT_MAX);
+  return {
+    stages: BOARD.map((stage) => ({ stage, count: counted.filter((i) => i.status === stage).length })),
+    total: counted.length,
+    done: counted.filter((i) => i.status === "done").length,
+    late,
+    blocked,
+    members,
+    recent,
+  } satisfies ProjectOverview & { late: T[]; blocked: T[]; recent: T[] };
 }

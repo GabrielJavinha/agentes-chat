@@ -8470,6 +8470,21 @@
         "firstTitle": "Todavía no hay proyectos",
         "firstText": "Un proyecto reúne las tareas de un mismo trabajo y les dice a los agentes en qué repositorios trabajar."
       },
+      "overview": {
+        "link": "Resumen",
+        "openBoard": "Abrir tablero",
+        "done_one": "{{done}} de {{count}} tarea hecha",
+        "done_many": "{{done}} de {{count}} tareas hechas",
+        "done_other": "{{done}} de {{count}} tareas hechas",
+        "stages": "Etapas",
+        "attention": "Necesita atención",
+        "late": "Atrasada desde {{date}}",
+        "people": "Quién trabaja en él",
+        "nobody": "Nadie en las tareas abiertas",
+        "working": "Trabajando ahora",
+        "stalled": "Se detuvo a mitad",
+        "recent": "Cambiadas por última vez"
+      },
       "repos": {
         "label": "Repositorios",
         "main": "Principal",

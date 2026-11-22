@@ -8704,6 +8704,21 @@ export const en = {
         firstTitle: "No projects yet",
         firstText: "A project gathers the tasks of one piece of work and tells agents which repositories to work in.",
       },
+      /** A project's overview (ADR 0202 §8): its stages, what needs care, who works on it, what changed last. */
+      overview: {
+        link: "Overview",
+        openBoard: "Open board",
+        done_one: "{{done}} of {{count}} task done",
+        done_other: "{{done}} of {{count}} tasks done",
+        stages: "Stages",
+        attention: "Needs attention",
+        late: "Late since {{date}}",
+        people: "Who works on it",
+        nobody: "Nobody on the open tasks",
+        working: "Working now",
+        stalled: "Stopped midway",
+        recent: "Updated last",
+      },
       /** The GitHub repositories a project works on (ADR 0202): the line under a project board's title and its dialog. */
       repos: {
         label: "Repositories",

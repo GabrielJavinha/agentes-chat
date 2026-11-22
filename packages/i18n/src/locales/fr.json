@@ -8520,6 +8520,21 @@
         "firstTitle": "Aucun projet pour l'instant",
         "firstText": "Un projet réunit les tâches d'un même travail et indique aux agents dans quels dépôts travailler."
       },
+      "overview": {
+        "link": "Vue d'ensemble",
+        "openBoard": "Ouvrir le tableau",
+        "done_one": "{{done}} sur {{count}} tâche terminée",
+        "done_many": "{{done}} sur {{count}} tâches terminées",
+        "done_other": "{{done}} sur {{count}} tâches terminées",
+        "stages": "Étapes",
+        "attention": "À surveiller",
+        "late": "En retard depuis {{date}}",
+        "people": "Qui y travaille",
+        "nobody": "Personne sur les tâches ouvertes",
+        "working": "Au travail",
+        "stalled": "Arrêté en cours de route",
+        "recent": "Modifiées en dernier"
+      },
       "repos": {
         "label": "Dépôts",
         "main": "Principal",

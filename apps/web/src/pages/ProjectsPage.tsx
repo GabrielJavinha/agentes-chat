@@ -16,7 +16,7 @@ import "./projects.css";
 
 /**
  * Projects (ADR 0202 §7): a card per project in use, each with its open tasks, its repositories (the main one named)
- * and the people and agents on its open tasks, the one at work first; a card opens the project's board. Archived ones
+ * and the people and agents on its open tasks, the one at work first; a card opens the project's overview. Archived ones
  * wait under a heading, folded. With none, the right hand says what a project is beside "New project".
  */
 export function ProjectsPage() {
@@ -104,9 +104,8 @@ function ProjectCard({ project: p, crew }: { project: IssueProject; crew?: Proje
   const onIt = crew && crew.assignees.length > 0 ? crew : undefined;
   return (
     <Link
-      to="/org/$orgId/issues"
-      params={{ orgId: org.id }}
-      search={{ project: p.id }}
+      to="/org/$orgId/projects/$projectId"
+      params={{ orgId: org.id, projectId: p.id }}
       className="ac-card ac-card--interactive projects-card"
       data-archived={p.archived || undefined}
     >

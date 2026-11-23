@@ -3,7 +3,7 @@ import { type Database, rowsOf, type SQL, type schema, sql } from "@agenteschat/
 import { BRAIN_KINDS } from "./brain-settings";
 import { ValidationError } from "./errors";
 import { isJsonObject, numberIn, wholeOrNull } from "./format";
-import { instantOf } from "./operator-paging";
+import { heavyRead, instantOf } from "./operator-paging";
 
 /**
  * Where runs' time went, for the operator API: one run's kept claims (`runClaims`, in its trace) and the stages,
@@ -114,14 +114,6 @@ const stageSql = (value: string) =>
 const listSql = (value: string) => `case when jsonb_typeof(${value}) = 'array' then ${value} else '[]'::jsonb end`;
 const pct = (q: number, column: string, filter = "") =>
   `percentile_cont(${q}) within group (order by ${column})${filter ? ` filter (where ${filter})` : ""}`;
-
-// Fleet-wide these read many rows: compiling them costs more than it saves, and one that still runs long is stopped.
-const heavyRead = (db: Database, statement: SQL) =>
-  db.transaction(async (tx) => {
-    await tx.execute(sql`set local jit = off`);
-    await tx.execute(sql`set local statement_timeout = '20s'`);
-    return tx.execute(statement);
-  });
 
 /** Nulls last, then as the database would order two words. */
 const byWord = (a: string | null, b: string | null) =>
@@ -483,5 +475,43 @@ export async function operatorReplyTimes(db: Database, query: ReplyTimesQuery, n
       p50Ms: wholeOrNull(w.p50Ms),
       p90Ms: wholeOrNull(w.p90Ms),
     })),
+  };
+}
+
+/** The longest window of `operatorCliRuns`, and the most CLI builds it lists. */
+export const CLI_RUNS_MAX_DAYS = 7;
+export const CLI_RUNS_ROWS_MAX = 200;
+
+/**
+ * The runs created in a window that ended (`done` or `failed`), by the coding CLI and version they thought with
+ * (`agent_runs.cli`), and how many of them failed: what the Cloud compares a CLI's new build with the one before by.
+ * Every failure counts, whatever its cause. Only values shaped as `recordRunBrain` writes them.
+ */
+export async function operatorCliRuns(db: Database, query: { from: string; to: string }) {
+  const [from, to] = [instantOf(query.from), instantOf(query.to)];
+  const apart = from && to ? Date.parse(to) - Date.parse(from) : 0;
+  if (!from || !to || apart <= 0 || apart > CLI_RUNS_MAX_DAYS * 86_400_000) {
+    throw new ValidationError(
+      `from and to are ISO 8601 instants, from before to, at most ${CLI_RUNS_MAX_DAYS} days apart`,
+      "analytics.range",
+    );
+  }
+  const rows = rowsOf<{ cli: string; runs: number; failed: number }>(
+    await heavyRead(
+      db,
+      sql`select ar.cli, count(*)::int as runs, (count(*) filter (where ar.status = 'failed'))::int as failed
+        from agent_runs ar
+        where ar.created_at >= ${from}::timestamptz and ar.created_at < ${to}::timestamptz
+          and ar.status in ('done', 'failed') and ar.cli ~ '^[a-z]{1,20} [0-9][0-9A-Za-z.+-]{0,63}$'
+        group by ar.cli order by runs desc, ar.cli limit ${CLI_RUNS_ROWS_MAX}`,
+    ),
+  );
+  return {
+    from,
+    to,
+    clis: rows.map(({ cli, runs, failed }) => {
+      const [name = "", version = ""] = cli.split(" ");
+      return { cli: name, version, runs, failed };
+    }),
   };
 }

@@ -20,6 +20,11 @@ export const REAUTH_PASSWORD = "reauth.password";
  * takes `untranslatedText`; a guard test (`error-words.test.ts`) fails on a new code that isn't here or on its list.
  */
 const KNOWN = {
+  // Moving a plan to another workspace (ADR 0079).
+  "plan_move.not_payer": "errors.planMove.notPayer",
+  "plan_move.same": "errors.planMove.same",
+  "plan_move.target_has_plan": "errors.planMove.targetHasPlan",
+  "plan_move.target_deleting": "errors.planMove.targetDeleting",
   // Linking an outside chat surface (ADR 0187). The lines name no surface: the server's errors carry no name.
   "surface.off": "errors.surface.off",
   "surface.not_allowed": "errors.surface.notAllowed",
@@ -53,6 +58,9 @@ const KNOWN = {
   "agent.not_owner": "errors.agent.ownerOrAdmin",
   "usage_queue.cancel_forbidden": "errors.agent.ownerOrAdmin",
   "agent.details_hidden": "errors.agent.detailsHidden",
+  // Who answers for an agent (ADR 0085, addendum of 2026-11-21): a person or a role, never both.
+  "agent.owner_both": "errors.agent.ownerBoth",
+  "agent.owner_role_unknown": "errors.agent.ownerRoleUnknown",
   "action.not_allowed": "errors.agent.undoForbidden",
   "action.skills_admins": "errors.agent.undoSkillsAdmins",
   "account.not_owner": "errors.account.notOwner",
@@ -87,6 +95,9 @@ const KNOWN = {
   "artifact.sharing_too_many": "errors.artifact.sharingTooMany",
   "artifact.not_in_drive": "errors.artifact.notInDrive",
   "drive.folder_into_itself": "errors.drive.folderIntoItself",
+  // Who edits (ADR 0202): a change from someone whose access lets them only view the file, an access that doesn't read.
+  "artifact.view_only": "errors.artifact.viewOnly",
+  "artifact.access_invalid": "errors.artifact.accessInvalid",
   // Live files (ADR 0196): a change to a file that is read-only now (in the trash, its workspace closing), a picture
   // over the size a file takes or that is no picture, a file past what it may hold, a whole new content sent for one
   // (it changes only in place).
@@ -162,6 +173,19 @@ const KNOWN = {
   "mission.agent_unavailable": "errors.mission.agentUnavailable",
   "mission.no_computer": "errors.mission.noComputer",
   "mission.computer_offline": "errors.mission.computerOffline",
+  // A code session (ADR 0215): starting one, and what its panel reads on the agent's computer.
+  "code_session.too_long": "errors.said.tooLong",
+  "code_session.bad_repo": "errors.webhook.invalidRepo",
+  "code_session.offline": "errors.mission.computerOffline",
+  "code_session.no_computer": "errors.codeSession.noComputer",
+  "code_session.cannot_code": "errors.codeSession.cannotCode",
+  "code_session.repo_not_allowed": "errors.codeSession.repoNotAllowed",
+  "code_session.not_yours": "errors.codeSession.notYours",
+  "code_session.not_ready": "errors.codeSession.notReady",
+  "code_session.file_changed": "errors.codeSession.fileChanged",
+  "code_session.file_locked": "errors.codeSession.fileLocked",
+  "code_session.suggestion_gone": "errors.codeSession.suggestionGone",
+  "code_session.suggestion_not_yours": "errors.codeSession.suggestionNotYours",
   "mission.exec_disabled": "errors.mission.execDisabled",
   "mission.runner_outdated": "errors.mission.runnerOutdated",
   "mission.codex_windows": "errors.mission.codexWindows",
@@ -203,6 +227,7 @@ const KNOWN = {
   "routine.widget_fixed": "errors.routine.widgetFixed",
   "routine.agent_not_in_channel": "errors.routine.agentNotInChannel",
   "routine.webhook_paused": "errors.routine.webhookPaused",
+  "routine.group_by_invalid": "errors.routine.groupByInvalid",
   "routine.continue_extra_off": "errors.routine.continueExtraOff",
   "run.continue_extra_off": "errors.routine.continueExtraOff",
   "routine.continue_extra_used_up": "errors.routine.continueExtraUsedUp",
@@ -243,6 +268,9 @@ const KNOWN = {
   "connector.headers_too_many": "errors.connector.headersTooMany",
   "connector.headers_with_sign_in": "errors.connector.headersWithSignIn",
   "connector.headers_unreadable": "errors.connector.headersUnreadable",
+  "connector.no_oauth": "errors.connector.noOAuth",
+  "connector.oauth_client_in_use": "errors.connector.ownClientInUse",
+  "connector.oauth_client_id": "errors.connector.ownClientId",
   // Facts only (the phone shows this one): the web's onboarding says `standing.createUnpaid` beside the way to pay.
   "org.create_unpaid": "standing.createInactive",
   "credentials.plan_hold": "connectAi.key.closed",
@@ -280,6 +308,7 @@ const KNOWN = {
   "email.undo_taken": "emailUndo.takenLead",
   "invitation.ask_to_join": "errors.invitation.askToJoin",
   "org.create_invite_only": "errors.org.createInviteOnly",
+  "org.create_unconfirmed": "errors.org.createUnconfirmed",
   "org.not_restorable": "errors.org.notRestorable",
   "account.not_restorable": "errors.account.notRestorable",
   "issue.assignee_outside": "errors.issue.assigneeOutside",

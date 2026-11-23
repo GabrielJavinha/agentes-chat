@@ -3,11 +3,15 @@ import { setupDom } from "../testing/dom";
 
 setupDom();
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { claimPlayback, releasePlayback, stopPlayback } from "../src/components/media-playback";
 import { VideoPlayer, type VideoPlayerProps } from "../src/components/VideoPlayer";
 
 afterEach(() => cleanup());
+
+const css = await Bun.file(new URL("../src/styles/components.css", import.meta.url).pathname).text();
+/** The declarations of the first rule written exactly as `selector {`. */
+const rule = (selector: string) => css.split(`\n${selector} {`)[1]?.split("}")[0] ?? "";
 
 const labels: VideoPlayerProps["labels"] = {
   play: "Tocar",
@@ -130,6 +134,46 @@ describe("a file's comments on the player (ADR 0208)", () => {
     expect(document.querySelector(".ac-video__seekbox")).toBeNull();
     expect(document.querySelector(".ac-video__marks")).toBeNull();
     expect(screen.getByRole("slider", { name: "Posição no vídeo", hidden: true })).toBeTruthy();
+  });
+});
+
+describe("full screen", () => {
+  const setFull = (el: Element | null) => {
+    Object.defineProperty(document, "fullscreenElement", { configurable: true, value: el });
+    act(() => {
+      document.dispatchEvent(new Event("fullscreenchange"));
+    });
+  };
+
+  test("the player marks itself while it is the full screen element", () => {
+    player({ onOpen: () => undefined });
+    const root = document.querySelector(".ac-video") as HTMLElement;
+    try {
+      setFull(root);
+      expect(root.hasAttribute("data-full")).toBe(true);
+      setFull(null);
+      expect(root.hasAttribute("data-full")).toBe(false);
+    } finally {
+      Reflect.deleteProperty(document, "fullscreenElement");
+    }
+  });
+
+  test("a chat tile keeps its fixed box only outside full screen, where the video then fills the screen whole", () => {
+    expect(rule(".ac-video--tile .ac-video__media")).toBe("");
+    const box = rule(".ac-video--tile:not([data-full]) .ac-video__media");
+    expect(box).toContain("width: 320px");
+    expect(box).toContain("height: 180px");
+    const media = rule(".ac-video__media");
+    expect(media).toContain("width: 100%");
+    expect(media).toContain("height: 100%");
+    expect(media).toContain("object-fit: contain");
+    // The tile's compact bar and its missing total time stay in the chat too.
+    expect(rule(".ac-video--tile .ac-video__bar")).toBe("");
+    expect(rule(".ac-video--tile .ac-video__total")).toBe("");
+    expect(rule(".ac-video--tile:not([data-full]) .ac-video__total")).toContain("display: none");
+    // The viewer and menus the corner opens would land behind the full screen.
+    expect(rule(".ac-video[data-full] .ac-video__acts")).toContain("display: none");
+    expect(rule(".ac-video[data-full]")).toContain("box-shadow: none");
   });
 });
 

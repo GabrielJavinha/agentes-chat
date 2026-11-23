@@ -90,7 +90,7 @@ export type IssueSource =
   | { type: "message"; channelId: string; messageId: string }
   | { type: "agent"; agentId: string; workId?: string; channelId?: string; messageId?: string }
   | { type: "webhook"; provider: string }
-  /** Imported from a GitHub issue (ADR 0202 §6): its description is outside text, read by agents as such. */
+  /** Imported from a GitHub issue (ADR 0218 §6): its description is outside text, read by agents as such. */
   | { type: "github"; repo: string; number: number };
 
 /** An issue as the app shows it. */
@@ -1939,7 +1939,7 @@ export async function openTasksBrief(
     .orderBy(desc(issues.updatedAt))
     .limit(OPEN_TASKS_SHOWN);
   if (rows.length === 0) return null;
-  // Each project's repositories (ADR 0202 §4), read once per project: where the code of its tasks lives.
+  // Each project's repositories (ADR 0218 §4), read once per project: where the code of its tasks lives.
   const projectIds = [...new Set(rows.flatMap((r) => (r.projectId ? [r.projectId] : [])))];
   const repos = new Map(
     await Promise.all(projectIds.map(async (id) => [id, await projectRepositories(db, orgId, id)] as const)),

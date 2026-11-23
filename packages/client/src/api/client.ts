@@ -1,5 +1,6 @@
 import type { AppLocale } from "@agenteschat/i18n/locale";
 import type { PlanModel } from "@agenteschat/providers/plans";
+import type { CodeApi } from "../code/api";
 import type { DashboardsApi } from "../dashboards/api";
 import type { ChatPrefs } from "../lib/chat-look";
 import type { OnboardingStepId } from "../lib/onboarding";
@@ -80,11 +81,11 @@ import type {
   AppsList,
   ArchivedChannel,
   Artifact,
+  ArtifactAccess,
   ArtifactContent,
   ArtifactDetail,
   ArtifactFilters,
   ArtifactPage,
-  ArtifactSharing,
   ArtifactVersion,
   AskToJoinResult,
   AuditPage,
@@ -258,6 +259,7 @@ import type {
   OrgPlanUsage,
   OrgRoles,
   OrgSettings,
+  OwnOAuthClient,
   PageTarget,
   PendingReturn,
   PeopleUsage,
@@ -664,6 +666,11 @@ export interface ApiClient {
       returnTo?: string,
       plan?: string,
     ): Promise<{ url: string; expiresAt: string }>;
+    /**
+     * Its payer moves the workspace's plan to `to`, another workspace where they manage billing that has no plan in
+     * force (ADR 0079): the billing service moves it within a minute. `billing.off` 404 on a server without billing.
+     */
+    movePlan(orgId: string, to: string): Promise<void>;
     /** People, files and today's uploads against the workspace's limits (any member; ADR 0079). */
     limits(orgId: string): Promise<WorkspaceLimits>;
     members(orgId: string): Promise<Member[]>;
@@ -1480,6 +1487,21 @@ export interface ApiClient {
       input: { label: string; tools: { name: string; access: ToolDecision; label: string; confirmed?: boolean }[] },
     ): Promise<CustomServer>;
     disconnect(orgId: string, serverId: string): Promise<void>;
+    /**
+     * The workspace's own OAuth client for the server at this address, and the redirect URI to register (who manages
+     * connectors). A 400 `connector.no_oauth` when the server doesn't sign in with OAuth.
+     */
+    ownClient(orgId: string, serverUrl: string): Promise<OwnOAuthClient>;
+    /**
+     * Saves it: every sign-in at that authorization server uses it. The same `clientId` keeps the saved secret unless
+     * one is sent; another one while accounts sign in with it is a 409 `connector.oauth_client_in_use`.
+     */
+    setOwnClient(
+      orgId: string,
+      input: { serverUrl: string; clientId: string; clientSecret?: string; scopes?: string },
+    ): Promise<OwnOAuthClient>;
+    /** Removes it; a 409 `connector.oauth_client_in_use` while accounts sign in with it. */
+    removeOwnClient(orgId: string, issuer: string): Promise<void>;
   };
   dms: {
     /** My direct conversations, with unread counts. */
@@ -1556,13 +1578,13 @@ export interface ApiClient {
     ): Promise<IssueProjectRef>;
     /** Its tasks stay, with no project. */
     deleteProject(orgId: string, projectId: string): Promise<void>;
-    /** Replaces the GitHub repositories it works on, its main one first (administrators, ADR 0202). */
+    /** Replaces the GitHub repositories it works on, its main one first (administrators, ADR 0218). */
     setProjectRepositories(
       orgId: string,
       projectId: string,
       repositories: string[],
     ): Promise<{ repositories: string[] }>;
-    /** Imports the GitHub issues of its repositories as its tasks, or stops (administrators, ADR 0202 §6). */
+    /** Imports the GitHub issues of its repositories as its tasks, or stops (administrators, ADR 0218 §6). */
     setProjectGithubImport(orgId: string, projectId: string, on: boolean): Promise<{ on: boolean }>;
   };
   /** Threads (ADR 0029): the Threads page, a thread from a range, moving it, closing and archiving. */
@@ -1585,6 +1607,8 @@ export interface ApiClient {
   dashboards: DashboardsApi;
   /** Spreadsheets, presentations and canvases edited together (ADR 0196), their pictures and Office previews. */
   live: LiveApi;
+  /** Code sessions (ADR 0215): a request in its own worktree on an agent's computer, with its conversation. */
+  code: CodeApi;
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {
     /** Missions you can see (the Missões tab), most recently changed first, with the counts for the tabs. */
@@ -1931,11 +1955,12 @@ export interface ApiClient {
       orgId: string,
       input: { title: string; channelId?: string | null; folderId?: string | null; content: ArtifactContent },
     ): Promise<ArtifactDetail>;
-    /** Uploads a file as is (multipart, ≤ 50 MB) to the Drive or to a channel. */
+    /** Uploads a file as is (multipart, ≤ 50 MB) to the Drive or to a channel; `upload` reports the share sent. */
     upload(
       orgId: string,
       file: File,
       options?: { title?: string; channelId?: string | null; threadId?: string | null; folderId?: string | null },
+      upload?: UploadOptions,
     ): Promise<ArtifactDetail>;
     /** A new version of an uploaded file (multipart, ≤ 50 MB). */
     uploadVersion(orgId: string, id: string, file: File, options?: { note?: string }): Promise<ArtifactDetail>;
@@ -1947,12 +1972,11 @@ export interface ApiClient {
       id: string,
       input: { content: ArtifactContent; note?: string | null; baseVersion: number; title?: string },
     ): Promise<ArtifactDetail>;
-    /** Who sees it on top of its conversation (ADR 0157); 403 `artifact.sharing_forbidden` for who got it shared. */
-    setSharing(
-      orgId: string,
-      id: string,
-      sharing: { mode: ArtifactSharing["mode"]; userIds?: string[]; roleIds?: string[] },
-    ): Promise<Artifact>;
+    /**
+     * Who sees and who edits it, people, roles and agents (ADR 0202); 403 `artifact.sharing_forbidden` for who may not
+     * change it.
+     */
+    setAccess(orgId: string, id: string, access: Omit<ArtifactAccess, "limited">): Promise<Artifact>;
     /** To the trash for 30 days (403 `artifact.delete_forbidden`). */
     remove(orgId: string, id: string): Promise<void>;
     /** A Drive file's new name (no new version). */

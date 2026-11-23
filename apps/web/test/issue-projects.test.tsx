@@ -380,7 +380,7 @@ describe("Tarefas: projects", () => {
   });
 });
 
-describe("A project's GitHub repositories, on its overview (ADR 0202)", () => {
+describe("A project's GitHub repositories, on its overview (ADR 0218)", () => {
   const listing = {
     connected: true,
     truncated: false,

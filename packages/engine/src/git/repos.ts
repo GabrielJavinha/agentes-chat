@@ -2,7 +2,7 @@ import type { MergeDone } from "@agenteschat/adapters";
 import { and, asc, type Database, type Executor, eq, schema, sql } from "@agenteschat/db";
 import { recordAgentActions } from "../agent-actions";
 import { getAgent } from "../agents";
-import { managesAgent } from "../audience";
+import { managesAgent, ownsAgent } from "../audience";
 import { recordAudit } from "../audit";
 import { fedByRoutine, runAuthorityById } from "../authority";
 import { ForbiddenError, NotFoundError, ValidationError } from "../errors";
@@ -49,7 +49,9 @@ export function parseRepo(input: string) {
     .replace(/^git@github\.com:/, "")
     .replace(/\/$/, "");
   const m = REPO.exec(s);
-  return m ? { owner: m[1] as string, repo: m[2] as string } : null;
+  // "." and ".." name no GitHub owner or repository, and would climb out of the checkouts' folder (`gitCheckoutDir`).
+  if (!m || [m[1], m[2]].some((part) => part === "." || part === "..")) return null;
+  return { owner: m[1] as string, repo: m[2] as string };
 }
 
 /** Whether `owner/repo` is in the list (an empty list allows everything). Case-insensitive, like GitHub. */
@@ -101,7 +103,7 @@ export async function agentOwnRepositoryList(db: Executor, orgId: string, agentI
 }
 
 /**
- * The repositories of the projects in which the agent has an open task (ADR 0202 §5): to do, in progress or in
+ * The repositories of the projects in which the agent has an open task (ADR 0218 §5): to do, in progress or in
  * review, with the agent among its assignees. Closing the task, or taking the agent off it, ends them.
  */
 export async function taskProjectRepositoriesOf(db: Executor, orgId: string, agentId: string): Promise<string[]> {
@@ -125,7 +127,7 @@ export async function taskProjectRepositoriesOf(db: Executor, orgId: string, age
 
 /**
  * What the agent may reach, in order (no permission check: for the proxy, the gateway, its computer and the prompt):
- * its own list, then the repositories of the projects it has an open task in that the list doesn't cover (ADR 0202
+ * its own list, then the repositories of the projects it has an open task in that the list doesn't cover (ADR 0218
  * §5). An empty list is every repository, as before: nothing to add to it.
  */
 export async function agentRepositoryList(db: Executor, orgId: string, agentId: string): Promise<string[]> {
@@ -175,7 +177,7 @@ export async function setAgentRepositories(
   const agent = await getAgent(db, orgId, agentId);
   if (!agent) throw new NotFoundError("Agent not found");
   const admin = managesAgent(agent, actorId, membership);
-  if (!admin && agent.ownerUserId !== actorId) {
+  if (!admin && !ownsAgent(agent, actorId, membership.roleIds)) {
     throw new ForbiddenError("Only an admin or the agent's owner can change its repositories");
   }
   const { list, invalid } = cleanRepoList(repositories);
@@ -223,7 +225,7 @@ const inReach = (list: readonly string[], entry: string) => {
 export async function agentMergeRepos(db: Executor, orgId: string, agentId: string): Promise<string[]> {
   const chosen = await chosenMergeRepos(db, orgId, agentId);
   if (chosen.length === 0) return [];
-  // Its own list only: reach through a task's project (ADR 0202 §5) never merges without asking.
+  // Its own list only: reach through a task's project (ADR 0218 §5) never merges without asking.
   const list = await agentOwnRepositoryList(db, orgId, agentId);
   return chosen.filter((entry) => inReach(list, entry));
 }
@@ -264,7 +266,7 @@ export async function setAgentMergeRepositories(
   const membership = await requirePermission(db, actorId, orgId, "read");
   const agent = await getAgent(db, orgId, agentId);
   if (!agent) throw new NotFoundError("Agent not found");
-  if (!managesAgent(agent, actorId, membership) && agent.ownerUserId !== actorId) {
+  if (!managesAgent(agent, actorId, membership) && !ownsAgent(agent, actorId, membership.roleIds)) {
     throw new ForbiddenError("Only an admin or the agent's owner can change where it merges without asking");
   }
   const { list, invalid } = cleanRepoList(repositories);

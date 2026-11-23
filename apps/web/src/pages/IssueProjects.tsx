@@ -301,7 +301,7 @@ const githubUrl = (repo: string) => `https://github.com/${repo}`;
 const sameRepo = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
 /**
- * Under a project board's title (ADR 0202): "Repositórios", the project's GitHub repositories (its main one first,
+ * Under a project board's title (ADR 0218): "Repositórios", the project's GitHub repositories (its main one first,
  * marked), each a chip whose menu opens it on GitHub and, for an administrator, makes it the main one or unlinks it,
  * then "Vincular repositório" or "Mudar". Nothing when it has none and the reader can't link one.
  */
@@ -365,7 +365,7 @@ export function ProjectRepositories({ project }: { project: IssueProject }) {
 }
 
 /**
- * "Importar issues do GitHub" (ADR 0202 §6): an administrator's switch, under the repositories. Anyone else sees only
+ * "Importar issues do GitHub" (ADR 0218 §6): an administrator's switch, under the repositories. Anyone else sees only
  * that it is on.
  */
 function GithubImportLine({ project, admin }: { project: IssueProject; admin: boolean }) {

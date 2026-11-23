@@ -10,7 +10,7 @@ import { parseRepo } from "./repos";
 const { githubAppInstallations, issueProjectRepositories, issueProjects, issues } = schema;
 
 /**
- * A project's GitHub issues and pull requests (ADR 0202 §6). Where an administrator turned the import on, an issue
+ * A project's GitHub issues and pull requests (ADR 0218 §6). Where an administrator turned the import on, an issue
  * opened in one of the project's repositories becomes a task in it (`issues.github_url`, source `github`), its edits,
  * closing and reopening follow, and a pull request that closes such an issue ("Fixes #12", as GitHub reads it) joins
  * the task's pull requests. Its own job (`github_app.project_sync`), apart from the events agents hear

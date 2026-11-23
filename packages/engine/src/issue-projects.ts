@@ -25,12 +25,12 @@ export interface IssueProjectRef {
 
 /**
  * A project in the projects menu. `open`: the open tasks in it that the reader sees. `repositories`: the GitHub
- * repositories it works on (`owner/name`), its main one first (ADR 0202).
+ * repositories it works on (`owner/name`), its main one first (ADR 0218).
  */
 export interface IssueProjectView extends IssueProjectRef {
   open: number;
   repositories: string[];
-  /** Issues opened in its repositories become its tasks (ADR 0202 §6). */
+  /** Issues opened in its repositories become its tasks (ADR 0218 §6). */
   githubImport: boolean;
 }
 
@@ -386,7 +386,7 @@ export async function taskOfRun(db: Executor, orgId: string, runId: string): Pro
   return task?.id ?? null;
 }
 
-/** The main repository of the project of the task a run works on (ADR 0202 §4); null when there is none. */
+/** The main repository of the project of the task a run works on (ADR 0218 §4); null when there is none. */
 export async function runProjectMainRepo(db: Executor, orgId: string, runId: string): Promise<string | null> {
   const issueId = await taskOfRun(db, orgId, runId);
   if (!issueId) return null;
@@ -407,7 +407,7 @@ export function projectReposLines(p: { project: string; repositories: string[] }
 
 /**
  * `PUT …/issue-projects/{id}/github-import`: issues opened in the project's repositories become its tasks, and pull
- * requests that close them join them (ADR 0202 §6). Only an administrator, as linking its repositories: the tasks are
+ * requests that close them join them (ADR 0218 §6). Only an administrator, as linking its repositories: the tasks are
  * made in their name and seen by the whole workspace, whatever the repository's own visibility. Audited.
  */
 export async function setProjectGithubImport(

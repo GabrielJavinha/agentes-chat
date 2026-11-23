@@ -609,7 +609,7 @@ export function registerGitHubAppWebhook(api: OpenAPIHono, deps: AppDeps) {
     // What happens on the items: queued once per delivery, so GitHub hears back at once and a redelivery adds nothing.
     const delivery = c.req.header("x-github-delivery") ?? null;
     const heard = await queueGitHubAppEvent(deps.db, { event, delivery, payload, slug: app.slug });
-    // A project importing from that repository (ADR 0202 §6): its own job, whether or not an agent hears it too.
+    // A project importing from that repository (ADR 0218 §6): its own job, whether or not an agent hears it too.
     const synced = await queueGitHubProjectSync(deps.db, { event, delivery, payload });
     const queued = heard || synced;
     if (queued) deps.wakeWorkers?.();

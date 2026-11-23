@@ -93,7 +93,7 @@ const line = (i: IssueView, names: Map<string, string>) =>
   }${i.dueDate ? ` due ${i.dueDate}` : ""} id=${i.id}`;
 
 /**
- * Under a list, once per project of its tasks that names repositories (ADR 0202 §4): where their code lives, the main
+ * Under a list, once per project of its tasks that names repositories (ADR 0218 §4): where their code lives, the main
  * one first. Empty when none does.
  */
 async function projectReposNote(deps: IssueDeps, ctx: ToolContext, list: IssueView[]) {

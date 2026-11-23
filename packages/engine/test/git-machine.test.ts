@@ -866,7 +866,7 @@ describe("agents' commits and the GitHub App (ADR 0156)", () => {
   });
 });
 
-describe("a task's project's repositories (ADR 0202 §4)", () => {
+describe("a task's project's repositories (ADR 0218 §4)", () => {
   /** A run on a task in a project whose repositories are `repos`, the main one first. */
   async function onTask(repos: string[]) {
     const deps = { db: f.db, pubsub: f.pubsub };

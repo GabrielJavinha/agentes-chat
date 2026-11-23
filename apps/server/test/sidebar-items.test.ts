@@ -241,6 +241,7 @@ test("the tools' order: each person's own, per workspace, every tool once, besid
     "calendar",
     "team",
     "dashboards",
+    "code",
     "taskManager",
   ];
   const saved = await put({ order: driveFirst });

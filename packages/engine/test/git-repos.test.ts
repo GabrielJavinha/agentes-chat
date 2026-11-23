@@ -147,7 +147,7 @@ describe("saving", () => {
   });
 });
 
-describe("reach through a task's project (ADR 0202 §5)", () => {
+describe("reach through a task's project (ADR 0218 §5)", () => {
   /** A project working on `repos`, and a task in it assigned to the agent. */
   async function projectTask(repos: string[]) {
     const deps = { db: f.db, pubsub: f.pubsub };

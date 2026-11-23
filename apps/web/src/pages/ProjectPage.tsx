@@ -33,7 +33,7 @@ import "./issues.css";
 import "./projects.css";
 
 /**
- * One project's overview (ADR 0202 §8): how far it is (its tasks by stage), the stalled work, the late and blocked
+ * One project's overview (ADR 0218 §8): how far it is (its tasks by stage), the stalled work, the late and blocked
  * tasks, who works on it, its repositories and the tasks changed last; "Abrir quadro" opens its board. A project that
  * is gone, deleted here or elsewhere, sends the reader back to the projects.
  */

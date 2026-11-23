@@ -67,13 +67,13 @@ const ProjectRef = z
   .openapi("IssueProjectRef");
 const ProjectRepositories = z
   .array(z.string())
-  .openapi({ description: "The GitHub repositories it works on (`owner/name`), its main one first (ADR 0202)." });
+  .openapi({ description: "The GitHub repositories it works on (`owner/name`), its main one first (ADR 0218)." });
 const Project = ProjectRef.extend({
   open: z.number().int().openapi({ description: "Open tasks in it that you see." }),
   repositories: ProjectRepositories,
   githubImport: z
     .boolean()
-    .openapi({ description: "Issues opened in its repositories become its tasks (ADR 0202 §6)." }),
+    .openapi({ description: "Issues opened in its repositories become its tasks (ADR 0218 §6)." }),
 }).openapi("IssueProject");
 const ProjectId = z
   .uuid()
@@ -359,6 +359,11 @@ export function issueRoutes(deps: AppDeps) {
                 description:
                   "The whole list of acceptance criteria, in order: an `id` keeps that criterion (and its check), one without is new, one left out is removed.",
               }),
+            removeFiles: z
+              .array(z.uuid())
+              .max(50)
+              .optional()
+              .openapi({ description: "Files to take off the issue's attachments; they stay in the Drive." }),
           }),
         ),
       },

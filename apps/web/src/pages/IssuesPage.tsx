@@ -264,7 +264,7 @@ export function IssuesPage() {
             actions={
               (project || (!noIssues && adds)) && (
                 <span className="ac-acts">
-                  {/* A project's repositories and what needs care live on its overview (ADR 0202 §8). */}
+                  {/* A project's repositories and what needs care live on its overview (ADR 0218 §8). */}
                   {project && (
                     <Button asChild>
                       <Link to="/org/$orgId/projects/$projectId" params={{ orgId: org.id, projectId: project.id }}>
@@ -760,6 +760,12 @@ function useResumeStalled() {
     mutationFn: async (list: Issue[]) => {
       const ids = list.map((i) => i.id);
       mark(ids, true);
+      // Asked at once; the ones the server refused go back to asking.
+      setAsked((prev) => {
+        const next = new Map(prev);
+        for (const i of list) if (i.work) next.set(i.id, i.work.since);
+        return next;
+      });
       const results = await Promise.allSettled(
         list.map((i) => api.issues.askAgent(org.id, i.id, i.work?.agentId ?? "")),
       );
@@ -768,7 +774,7 @@ function useResumeStalled() {
         const next = new Map(prev);
         for (const [k, r] of results.entries()) {
           const i = list[k];
-          if (r.status === "fulfilled" && i?.work) next.set(i.id, i.work.since);
+          if (r.status === "rejected" && i?.work && next.get(i.id) === i.work.since) next.delete(i.id);
         }
         return next;
       });

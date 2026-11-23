@@ -1,4 +1,3 @@
-import type { ConnectionStatus } from "@agenteschat/client";
 import { canTalk } from "@agenteschat/client/lib/audience";
 import { LinearGradient } from "expo-linear-gradient";
 import type { ComponentProps, ComponentRef, RefObject } from "react";
@@ -17,10 +16,11 @@ import { insertRef, refQuery } from "../mentions";
 import { NoAiBanner } from "../NoAiBanner";
 import type { noAiBanner } from "../no-ai-banner";
 import { AgentLocked, UnavailableLines } from "../ReachLines";
+import { TeamStalledLine } from "../TeamStalledLine";
 import { withOpacity } from "../turn";
 import type { ListPlacement } from "./ChatList";
 import { DOCK_SIDE } from "./constants";
-import { ChatComposer, Connection, FarGate, ToLatest } from "./parts";
+import { ChatComposer, FarGate, ToLatest } from "./parts";
 import type { ChatData } from "./useChatData";
 import type { ChatRows } from "./useChatRows";
 import type { ChatSend } from "./useChatSend";
@@ -63,7 +63,6 @@ export function ChatDock({
   wallSize,
   backdrop,
   keyboardAt,
-  realtime,
   banner,
   org,
   notices,
@@ -175,7 +174,6 @@ export function ChatDock({
     bottomPad: number;
     wallSize: { width: number; height: number } | null;
     keyboardAt: ReturnType<typeof useReanimatedKeyboardAnimation>;
-    realtime: ConnectionStatus;
     banner: ReturnType<typeof noAiBanner>;
     awayAsk: ReturnType<typeof useAwayAsk>;
     meId: string | null;
@@ -240,8 +238,8 @@ export function ChatDock({
             <View style={[styles.grow, { backgroundColor: c.bg }]} />
           </View>
         )}
-        <Connection status={realtime} />
         {banner && !org?.deletion ? <NoAiBanner banner={banner} /> : null}
+        {channel?.name === "general" && !threadId && !dmAgentId && !org?.deletion ? <TeamStalledLine /> : null}
         <UnavailableLines notices={notices} />
         {/* A request waiting out of view, with "Ver" (and the working line's stop while one agent works).
             Who is working sits here only while there is no conversation yet: once there is one, it is the

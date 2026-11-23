@@ -317,7 +317,7 @@ export interface CodeTurn {
  * Before a chat turn of a computer brain (Claude Code, Codex) on a connected
  * machine: updates the agent's checkouts (fetch + fast-forward of the default
  * branch, bounded, never failing the turn), picks where the turn starts (the
- * repository the conversation names, else its task's project's main one (ADR 0202 §4), else the agent's first
+ * repository the conversation names, else its task's project's main one (ADR 0218 §4), else the agent's first
  * repository, else its first checkout) and writes the "# Your code" block for the system text, and where it starts ("You start in …")
  * for the turn's own prompt: the system text stays the same from turn to turn. Null when there is
  * nothing to do: a mission turn (it has its own folder; only the computer's proxy credential is refreshed), an
@@ -362,7 +362,7 @@ export async function prepareAgentCode(
     }
     const credit = await creditLine(deps, turn);
     const list = await agentRepositoryList(deps.db, turn.orgId, turn.agentId);
-    // The main repository of the run's task's project (ADR 0202 §4), when the agent reaches it: kept up to date, and
+    // The main repository of the run's task's project (ADR 0218 §4), when the agent reaches it: kept up to date, and
     // where the turn starts unless the conversation names another.
     const main = turn.runId ? await runProjectMainRepo(deps.db, turn.orgId, turn.runId).catch(() => null) : null;
     const projectMain = main && repoInList(list, ...(main.split("/") as [string, string])) ? main : null;

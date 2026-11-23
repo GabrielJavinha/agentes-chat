@@ -4,7 +4,7 @@ import { memo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Platform, StyleSheet, View } from "react-native";
 import { TAB_BADGE } from "@/lib/nav";
-import { Count, LIST_AVATAR, LIST_PREVIEW, LineIcon, ListRow, PixelOrbit, Text } from "@/ui";
+import { Count, LIST_AVATAR, LIST_PREVIEW, LineIcon, ListRow, PixelOrbit, Tag, Text } from "@/ui";
 import { router } from "@/ui/navigation";
 import { withAlpha } from "@/ui/palette";
 import type { RowAction } from "../categories/menus";
@@ -83,6 +83,9 @@ export const ConversationItem = memo(function ConversationItem({
   const opener = useChatOpener();
   const chosen = useIsChosen(opener, chatOfRow(r));
   const agentDm = r.kind === "dm" && r.with.type === "agent";
+  // An agent's role (its Função, "Ops") beside its name as a tag, as the web's lists show it: read once for the list
+  // with the row's other facts, never by the row itself.
+  const role = facts.role;
   const leading =
     r.kind === "dm" ? (
       agentDm ? (
@@ -150,6 +153,7 @@ export const ConversationItem = memo(function ConversationItem({
   const { badge, mention } = facts;
   const a11y = [
     name,
+    role,
     meta ?? null,
     facts.presence,
     facts.status,
@@ -187,6 +191,7 @@ export const ConversationItem = memo(function ConversationItem({
           {...(chosen ? { background: withAlpha(c.ink, CHOSEN_TINT), accessibilityState: { selected: true } } : {})}
           leading={leading}
           title={name}
+          {...(role ? { titleAside: <Tag label={role} /> } : {})}
           time={meta ?? facts.time}
           dot={fresh && badge === 0}
           over={

@@ -201,13 +201,21 @@ async function openViewer(api: ApiClient, fileId: string, search = "") {
 const comments = (dialog: HTMLElement) =>
   within(dialog.querySelector(".ac-details__actions") as HTMLElement).getByRole("button", { name: /^Comentários/ });
 const openComments = async (dialog: HTMLElement) => {
-  await click(comments(dialog));
+  // A picture that has comments opens with them already beside it.
+  if (comments(dialog).getAttribute("aria-pressed") !== "true") await click(comments(dialog));
   await settle(8);
   return await waitFor(() => {
     const open = panel();
     if (!open) throw new Error("the comments aren't open yet");
     return open;
   });
+};
+/** Comentários pressed again: the picture alone, as one with no comments opens. */
+const closeComments = async (dialog: HTMLElement) => {
+  await waitFor(() => expect(comments(dialog).getAttribute("aria-pressed")).toBe("true"));
+  await click(comments(dialog));
+  await settle(4);
+  expect(panel()).toBeNull();
 };
 const press = async (from: { clientX: number; clientY: number }, to = from) => {
   const stage = document.querySelector(".izoom__stage") as HTMLElement;
@@ -225,10 +233,12 @@ describe("a picture's comments in the viewer", () => {
     const actions = within(dialog.querySelector(".ac-details__actions") as HTMLElement);
     // One button for them: no Comentar and Conversa beside it.
     expect(comments(dialog).textContent).toBe("Comentários3");
-    expect(comments(dialog).getAttribute("aria-pressed")).toBe("false");
     expect(actions.queryByRole("button", { name: "Comentar" })).toBeNull();
     expect(actions.queryByRole("button", { name: /^Conversa/ })).toBeNull();
-    expect(panel()).toBeNull();
+    // It has comments: they open beside it; Comentários closes them.
+    await waitFor(() => expect(panel()).toBeTruthy());
+    await closeComments(dialog);
+    expect(comments(dialog).getAttribute("aria-pressed")).toBe("false");
     // Its open comments, numbered oldest first with who wrote them; the resolved one is gone.
     await waitFor(() => expect(pinNames()).toEqual(["Comentário 1 de João", "Comentário 2 de Ada"]));
     expect(pins().map((p) => p.querySelector(".mf-pin__n")?.textContent)).toEqual(["1", "2"]);
@@ -310,6 +320,7 @@ describe("a picture's comments in the viewer", () => {
   test("the resolved ones come back faded with 1 resolvido, and go again", async () => {
     const { api, file } = await pictureWithTalk({ comments: THREE });
     const { dialog } = await openViewer(api, file.id);
+    await closeComments(dialog);
     await waitFor(() => expect(pins()).toHaveLength(2));
     const show = within(dialog).getByRole("button", { name: "1 resolvido" });
     expect(show.getAttribute("aria-pressed")).toBe("false");
@@ -326,6 +337,7 @@ describe("a picture's comments in the viewer", () => {
   test("a pin opens the comments at its message, its area outlined", async () => {
     const { api, file } = await pictureWithTalk({ comments: THREE });
     const { dialog } = await openViewer(api, file.id);
+    await closeComments(dialog);
     await waitFor(() => expect(pins()).toHaveLength(2));
     await click(pins()[1] as HTMLElement);
     await settle(8);
@@ -350,6 +362,13 @@ describe("a picture's comments in the viewer", () => {
     expect(again.router.state.location.search).toMatchObject({ artifact: file.id, m: "c-1" });
     await waitFor(() => expect(screen().getByRole("dialog", { name: "banner.png" })).toBeTruthy());
     await waitFor(() => expect(panel()).toBeTruthy());
+  });
+
+  test("one with no comments opens alone, Comentários not pressed", async () => {
+    const { api, file } = await pictureWithTalk({ comments: [] });
+    const { dialog } = await openViewer(api, file.id);
+    expect(comments(dialog).getAttribute("aria-pressed")).toBe("false");
+    expect(panel()).toBeNull();
   });
 
   test("a file that isn't a picture, a video or a PDF has no Comentários", async () => {

@@ -73,7 +73,7 @@ export const issueProjects = pgTable(
     color: text().notNull().default("graphite"),
     archivedAt: timestamp({ withTimezone: true }),
     /**
-     * Issues opened in its repositories become its tasks, and their pull requests join them (ADR 0202 §6). Turned on
+     * Issues opened in its repositories become its tasks, and their pull requests join them (ADR 0218 §6). Turned on
      * by an administrator, `github_import_by`, in whose name the tasks are made: one who leaves stops it.
      */
     githubImport: boolean().notNull().default(false),
@@ -85,7 +85,7 @@ export const issueProjects = pgTable(
 );
 
 /**
- * The GitHub repositories a project works on (ADR 0202), in order: the first is its main one. `repo` is `owner/name`
+ * The GitHub repositories a project works on (ADR 0218), in order: the first is its main one. `repo` is `owner/name`
  * as it was picked (never a whole account); one project holds a repository once, whatever its capitals.
  */
 export const issueProjectRepositories = pgTable(
@@ -341,6 +341,8 @@ export const routineRuns = pgTable(
     index().on(t.routineId, t.createdAt),
     // A run's routine, joined per run by the task list.
     index().on(t.agentRunId),
+    // The open runs (few of all ever made), read by the reaper and the stall sweep every tick (`reapRoutineRuns`).
+    index("routine_runs_open_idx").on(t.status, t.createdAt).where(sql`${t.finishedAt} is null`),
   ],
 );
 
@@ -366,6 +368,11 @@ export const routineHooks = pgTable("routine_hooks", {
   source: jsonb(),
   /** The HTTP methods the address answers (GET passes its query string as the call's data). */
   methods: text().array().notNull().default(sql`'{POST}'::text[]`),
+  /**
+   * "Group calls by": a dot path into a call's data (`conversation.id`). Calls with the same value there run one
+   * after another, in order; different values run side by side. Null: one line for every call.
+   */
+  groupBy: text(),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });

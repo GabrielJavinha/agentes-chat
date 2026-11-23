@@ -81,7 +81,7 @@ async function deliver(event: string, payload: Record<string, unknown>, delivery
 const owner = () => ({ type: "person" as const, userId: f.owner.id });
 const tasks = async (projectId?: string) => listIssues(f.db, owner(), f.org.id, projectId ? { projectId } : {});
 
-describe("importing a project's GitHub issues (ADR 0202 §6)", () => {
+describe("importing a project's GitHub issues (ADR 0218 §6)", () => {
   test("an issue opened becomes a task in the project, once; its edits, closing and reopening follow", async () => {
     const { project } = await world();
     expect(await deliver("issues", issueEvent("opened", 12), "d-1")).toBe(true);

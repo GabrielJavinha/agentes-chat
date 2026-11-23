@@ -358,6 +358,7 @@ const AgentDetail = z
     instructions: z.string(),
     model: z.string(),
     ownerUserId: z.string().nullable(),
+    ownerRoleId: z.uuid().nullable().openapi({ description: "A role that answers for it instead of a person." }),
     credentialId: z.uuid().nullable().openapi({ description: "Null = platform key (Cloud)." }),
     budgetUsedPercent: z
       .number()
@@ -484,7 +485,7 @@ const ManagedTask = z
         from: z
           .object({
             channelId: z.uuid(),
-            channelKind: z.enum(["channel", "dm", "task", "file"]),
+            channelKind: z.enum(["channel", "dm", "task", "file", "code"]),
             channelName: z.string().nullable(),
             threadId: z.uuid().nullable(),
             messageId: z.uuid().nullable(),
@@ -778,6 +779,10 @@ export function managementRoutes(deps: AppDeps) {
             approvalsWaitingForMe: z.number(),
             proposalsWaitingForMe: z.number().openapi({
               description: "Open proposals the viewer can see and decide (`GET …/proposals`, `canDecide`).",
+            }),
+            code: z.boolean().openapi({
+              description:
+                "Whether Code has anything for the viewer (ADR 0215): an agent that programs on a computer, or an open session they take part in. The apps offer Code only then.",
             }),
           }),
         ),
@@ -1639,6 +1644,7 @@ export function managementRoutes(deps: AppDeps) {
           instructions: seesDetails ? v.instructions : "",
           model: v.model,
           ownerUserId: v.ownerUserId,
+          ownerRoleId: v.ownerRoleId ?? null,
           credentialId: seesDetails ? d.agent.credentialId : null,
           budgetUsedPercent: month.budgetUsedPercent,
           ...(seesCost

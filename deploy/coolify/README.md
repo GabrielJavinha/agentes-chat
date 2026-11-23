@@ -143,6 +143,15 @@ Two defaults send data to the project that makes agentes.chat:
 `TELEMETRY=off` and `FEEDBACK_RELAY=false` stop both. `docker compose run --rm agentes
 telemetry` prints exactly what the report would contain.
 
+### The server as its agents' computer
+
+This fork's compose file also publishes the app on the host's loopback, `127.0.0.1:3000`
+(`HOST_PORT` moves it), as the installer's does. With `HOST_COMPUTER_TOKEN` under
+**Environment Variables**, the same value as the token file `agentes-runner host` reads on the
+server, the server is its agents' computer: the runner connects to `http://127.0.0.1:3000` and
+joins the organizations the instance's first account owns or administers. Nothing outside the
+server reaches that port.
+
 ## 8. Upgrade
 
 Change `AGENTES_IMAGE` to a version tag (`ghcr.io/agentes-chat/agentes:1.4.0`) or leave it on

@@ -56,10 +56,15 @@ services:
       - FILES_DIR=/data/files
     volumes:
       - files:/data/files
-    # No ports: the Coolify proxy reaches this container on the resource's network. Publishing
-    # a port would put the app on the host, past any firewall, in plain http.
+    # The Coolify proxy reaches this container on the resource's network. The one port published is
+    # on the host's loopback, as the installer's docker-compose.yml publishes it: this fork's server
+    # is also its agents' computer (HOST_COMPUTER_TOKEN), and `agentes-runner host` on it connects to
+    # http://127.0.0.1:3000. Loopback only: nothing outside the server reaches it, in plain http or
+    # otherwise. HOST_PORT moves it when 3000 is taken on the host.
     expose:
       - "3000"
+    ports:
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,6 +1,6 @@
 # This fork's own image, for a server that installed agentes.chat with its installer and runs this fork instead:
 # its .env sets AGENTES_IMAGE=ghcr.io/<owner>/agentes:latest, and `docker compose pull && docker compose up -d`
-# updates it, as with the original's image. Built from the Dockerfile on every push to this fork's main (the version
+# updates it, as with the original's image. Built from the Dockerfile, for arm64, on every push to this fork's main (the version
 # its server runs) and by hand from the Actions tab. The original's CI (ci.yml) builds and publishes the original's
 # images, so this one runs only in this fork.
 name: Fork image
@@ -21,7 +21,8 @@ jobs:
   image:
     name: Build and publish
     if: github.repository == 'GabrielJavinha/agentes-chat'
-    runs-on: ubuntu-latest
+    # Built natively on GitHub's ARM runner: the server is arm64 (aarch64).
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 40
     permissions:
       contents: read
@@ -42,11 +43,11 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
-      # amd64 only: the server this fork runs on. A sha- tag per commit holds a version, as AGENTES_IMAGE can pin.
+      # arm64 only: the server this fork runs on. A sha- tag per commit holds a version, as AGENTES_IMAGE can pin.
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

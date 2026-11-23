@@ -15,7 +15,7 @@ import "./issues.css";
 import "./projects.css";
 
 /**
- * Projects (ADR 0218 §7): a card per project in use, each with its open tasks, its repositories (the main one named)
+ * Projects (ADR 0219 §7): a card per project in use, each with its open tasks, its repositories (the main one named)
  * and the people and agents on its open tasks, the one at work first; a card opens the project's overview. Archived ones
  * wait under a heading, folded. With none, the right hand says what a project is beside "New project".
  */

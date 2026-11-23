@@ -5858,7 +5858,7 @@ export function useIssueProjectAction(orgId: string) {
   });
 }
 
-/** Replaces a project's GitHub repositories, its main one first (administrators, ADR 0218). */
+/** Replaces a project's GitHub repositories, its main one first (administrators, ADR 0219). */
 export function useSetProjectRepositories(orgId: string, projectId: string) {
   const api = useApi();
   const qc = useQueryClient();
@@ -5868,7 +5868,7 @@ export function useSetProjectRepositories(orgId: string, projectId: string) {
   });
 }
 
-/** Imports a project's GitHub issues as its tasks, or stops (administrators, ADR 0218 §6). */
+/** Imports a project's GitHub issues as its tasks, or stops (administrators, ADR 0219 §6). */
 export function useSetProjectGithubImport(orgId: string, projectId: string) {
   const api = useApi();
   const qc = useQueryClient();

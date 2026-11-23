@@ -2343,7 +2343,8 @@ export const ptBR = {
     searchWorkspace: "Buscar no workspace",
     summary_one: "{{people}} membro · {{agents}} agentes",
     summary_other: "{{people}} membros · {{agents}} agentes",
-    waiting: "Esperando você",
+    /** The sidebar's one entry for everything that involves me: what waits on me, what is new, what I decided. */
+    waiting: "Caixa de entrada",
     approvals: "Aprovações",
     proposals: "Propostas de melhoria",
     issues: "Tarefas",
@@ -5574,7 +5575,7 @@ export const ptBR = {
     firstRun: "Continue de onde parou · {{done}} de {{total}}",
   },
   notifications: {
-    title: "Notificações",
+    title: "Caixa de entrada",
     /** "Tirar de volta" on `plan_lent`: the person's plan leaves the agent someone else gave it to, or all of them. */
     planLent: {
       takeBack: "Tirar de volta",
@@ -5612,7 +5613,7 @@ export const ptBR = {
         computer: "Trocar computador",
       },
     },
-    docTitleUnread: "({{count}}) Notificações",
+    docTitleUnread: "({{count}}) Caixa de entrada",
     summaryWaiting_one: "{{count}} coisa esperando você",
     summaryWaiting_other: "{{count}} coisas esperando você",
     summaryUnread_one: "{{count}} não lida",
@@ -5629,6 +5630,8 @@ export const ptBR = {
       waiting: "Esperando você",
       unread: "Não lidas",
       reactions: "Reações",
+      /** The requests already decided: approved, refused, expired. */
+      requests: "Pedidos decididos",
       done: "Concluídas",
     },
     keys: {
@@ -5871,6 +5874,9 @@ export const ptBR = {
     noneUnread: "Tudo lido.",
     noneHere: "Nada aqui por enquanto.",
     noneDone: "Nada concluído nos últimos 30 dias.",
+    noneRequests: "Nenhum pedido decidido ainda.",
+    /** A proposal's row in the inbox, after the agent's name. */
+    proposes: "propõe uma melhoria",
     more: "Mostrar mais",
   },
   approvals: {
@@ -8736,7 +8742,7 @@ export const ptBR = {
       deleteTitle: "Excluir o projeto {{name}}?",
       deleteBody: "As tarefas dele continuam, sem projeto.",
       empty: "Nenhuma tarefa neste projeto ainda.",
-      /** The Projects page (ADR 0218 §7): a card per project. */
+      /** The Projects page (ADR 0219 §7): a card per project. */
       page: {
         title: "Projetos",
         subtitle: "As tarefas da equipe agrupadas, cada projeto com seus repositórios",
@@ -8752,7 +8758,7 @@ export const ptBR = {
         firstText:
           "Um projeto junta as tarefas de um mesmo trabalho e diz aos agentes em quais repositórios trabalhar.",
       },
-      /** A project's overview (ADR 0218 §8): its stages, what needs care, who works on it, what changed last. */
+      /** A project's overview (ADR 0219 §8): its stages, what needs care, who works on it, what changed last. */
       overview: {
         link: "Visão geral",
         openBoard: "Abrir quadro",
@@ -8767,7 +8773,7 @@ export const ptBR = {
         stalled: "Parou no meio",
         recent: "Atualizadas por último",
       },
-      /** The GitHub repositories a project works on (ADR 0218): the line under a project board's title and its dialog. */
+      /** The GitHub repositories a project works on (ADR 0219): the line under a project board's title and its dialog. */
       repos: {
         label: "Repositórios",
         main: "Principal",
@@ -13818,14 +13824,51 @@ export const ptBR = {
     added: "{{repo}} entra na lista ao salvar.",
   },
   connectors: {
+    /** The connectors as a store: featured services, a line per service with one button, and each one's page. */
+    store: {
+      featured: "Destaques",
+      suggested: "Sugerido",
+      seeAll: "Ver todos",
+      more: "Ver mais",
+      moreName: "Ver mais sobre {{name}}",
+      connected: "Conectado",
+      browse: "Ver conectores",
+      notListed: "Tem um serviço que não está na loja?",
+      howLabel: "Como conecta",
+      whoAll: "Todos os agentes",
+      whoChoose: "Você escolhe depois",
+      asksLabel: "Aprovação",
+      asksSensitive: "O que é sensível pede você",
+      afterTitle: "Depois de conectar",
+      agents_one: "{{count}} agente",
+      agents_other: "{{count}} agentes",
+      whoEvery_one: "O seu agente usa.",
+      whoEvery_other: "Todos os {{count}} agentes usam.",
+      whoSome_one: "{{names}}. O outro agente não usa.",
+      whoSome_other: "{{names}}. Os outros {{count}} agentes não usam.",
+      change: "Alterar",
+      see: "Ver",
+      account: "Conta",
+      toolsText: "O que os agentes podem fazer com ela, e o que pede você.",
+      addressesText: "Com quem os agentes podem falar por esta caixa.",
+      bandTitle_one: "{{count}} serviço para conectar",
+      bandTitle_other: "{{count}} serviços para conectar",
+      bandText: "{{names}} e outros.",
+      appMissing: "Falta criar o app do servidor",
+      appEvents: "Faltam eventos no app",
+      appLine: "App deste servidor",
+      eventsLine: "Eventos",
+    },
+    howShort: {
+      oneClick: "Um clique",
+      oauthOrKey: "Um clique ou chave de API",
+      key: "Chave de API",
+      appPassword: "Senha de app",
+      addressPassword: "Endereço e senha",
+      composio: "Pela Composio",
+    },
     title: "Conectores",
     add: "Adicionar conector",
-    mcp: {
-      title: "MCPs",
-      add: "Adicionar MCP",
-      list: "Servidores MCP conectados",
-      none: "Os servidores MCP que você conectar pelo endereço aparecem aqui.",
-    },
     /** Connections split as the Vault splits its items: the team's and each person's (ADR 0099 addendum). */
     personal: {
       note: "Só você abre estas conexões. Seus agentes só usam quando você pede.",
@@ -13863,9 +13906,6 @@ export const ptBR = {
         "Todos do workspace passam a ver. Quem gerencia agentes escolhe quais agentes usam, e o dono de um agente pode desligar no seu. Um agente que usa todos os apps conectados passa a usar na hora.",
       moved: "{{name}} agora é da equipe.",
     },
-    addTitle: "Adicionar conector",
-    catalogText: "Conecte uma vez para a {{org}}. Depois escolha o que cada agente pode usar.",
-    catalog: "Conectores disponíveis",
     categories: "Categorias",
     category: {
       all: "Todos",
@@ -13886,8 +13926,6 @@ export const ptBR = {
     connectName: "Conectar {{name}}",
     reconnectName: "Reconectar {{name}}",
     addAccountName: "Adicionar outra conta do {{name}}",
-    other: "Não achou?",
-    otherText: "Conecte qualquer serviço pelo endereço dele.",
     search: "Buscar conector",
     searchPlaceholder: "Buscar por nome ou o que faz",
     empty: "Nenhum conector com “{{q}}”",
@@ -13901,8 +13939,6 @@ export const ptBR = {
     more: "Mais serviços",
     tileConnected: "{{name}}, conectado",
     tileSoon: "{{name}}, em breve",
-    otherTitle: "Outro serviço",
-    otherDetail: "Qualquer serviço que ofereça conexão para agentes, pelo endereço dele (começa com https://).",
     otherSteps: {
       "1": "Você cola o endereço e autoriza na página do serviço",
       "2": "A gente classifica o que cada ferramenta faz",
@@ -13910,7 +13946,6 @@ export const ptBR = {
     },
     otherConnect: "Conectar pelo endereço",
     detail: {
-      close: "Fechar detalhe",
       can: "O que os agentes poderão fazer",
       afterText: "Nenhum agente usa até você escolher.",
       allText: "Ao conectar, todos os agentes podem usar. Dá para ajustar depois.",
@@ -13918,8 +13953,6 @@ export const ptBR = {
       accountsText: "Cada conta tem quem usa e níveis próprios.",
       reconnect: "Reconectar",
       replaceText: "Substitui o login atual. Quem usa continua igual.",
-      connected: "Já conectado",
-      how: "Como funciona",
     },
     how: {
       oneClick: "Um clique: você autoriza na página do serviço",
@@ -14022,6 +14055,10 @@ export const ptBR = {
         "2": "Criar e ajustar campanhas",
         ask: "Ativar anúncios e mudar orçamentos sempre pedem sua aprovação",
       },
+      tiktok_ads: {
+        "1": "Ver campanhas, grupos de anúncios e resultados",
+        "2": "Criar e ajustar campanhas e anúncios",
+      },
       google_docs: { "1": "Buscar e ler documentos", "2": "Criar e editar documentos" },
       google_sheets: { "1": "Ler planilhas", "2": "Adicionar linhas e atualizar células" },
       google_calendar: {
@@ -14109,7 +14146,6 @@ export const ptBR = {
         ask: "Cada envio sempre pede sua aprovação",
       },
     },
-    connectedList: "Conectados",
     connected: "Conectado",
     connectedAs: "Conectado como {{account}}",
     reconnectAdds: "Reconecte o {{name}} para os agentes também poderem {{what}}.",
@@ -14237,6 +14273,7 @@ export const ptBR = {
       amplitude: "Gráficos, dashboards e experimentos.",
       himetrica: "Visitantes, funis, receita e busca orgânica.",
       meta_ads: "Campanhas e resultados de anúncios no Facebook e Instagram.",
+      tiktok_ads: "Campanhas, grupos de anúncios e anúncios do TikTok, com os resultados.",
       klaviyo: "Campanhas, fluxos, listas e perfis.",
       millionsend: "Campanhas de email, listas e contatos.",
       semrush: "Dados de palavras-chave, domínios e backlinks.",
@@ -15863,6 +15900,10 @@ export const ptBR = {
       pageOf: "{{page}} de {{count}}",
       pdfFailed: "Não deu para mostrar este PDF aqui. Baixe para abrir.",
       loadFailed: "Não deu para mostrar esta imagem aqui.",
+      /** On the file's bar with its comments open: whether a press marks the file. */
+      mark: "Marcar",
+      markOff: "Parar de marcar: o clique volta a mover o arquivo",
+      markOn: "Marcar: o clique comenta um ponto ou uma área",
       hint: {
         image: "Clique para marcar um ponto ou arraste para marcar uma área",
         video: "Clique no vídeo para comentar neste momento, ou arraste para marcar uma área",

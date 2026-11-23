@@ -73,7 +73,7 @@ export const issueProjects = pgTable(
     color: text().notNull().default("graphite"),
     archivedAt: timestamp({ withTimezone: true }),
     /**
-     * Issues opened in its repositories become its tasks, and their pull requests join them (ADR 0218 §6). Turned on
+     * Issues opened in its repositories become its tasks, and their pull requests join them (ADR 0219 §6). Turned on
      * by an administrator, `github_import_by`, in whose name the tasks are made: one who leaves stops it.
      */
     githubImport: boolean().notNull().default(false),
@@ -85,7 +85,7 @@ export const issueProjects = pgTable(
 );
 
 /**
- * The GitHub repositories a project works on (ADR 0218), in order: the first is its main one. `repo` is `owner/name`
+ * The GitHub repositories a project works on (ADR 0219), in order: the first is its main one. `repo` is `owner/name`
  * as it was picked (never a whole account); one project holds a repository once, whatever its capitals.
  */
 export const issueProjectRepositories = pgTable(

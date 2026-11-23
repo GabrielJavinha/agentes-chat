@@ -1297,7 +1297,7 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     [GITHUB_EVENT_JOB]: async (job) => {
       await handleGitHubAppEvent({ db: deps.db, pubsub: deps.pubsub }, orgOf(job), job.payload.event as GitHubAppEvent);
     },
-    // An issue or a pull request in a repository a project imports from (ADR 0218 §6).
+    // An issue or a pull request in a repository a project imports from (ADR 0219 §6).
     [GITHUB_PROJECT_SYNC_JOB]: async (job) => {
       await handleGitHubProjectSync(
         { db: deps.db, pubsub: deps.pubsub },

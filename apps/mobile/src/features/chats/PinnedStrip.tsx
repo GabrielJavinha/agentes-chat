@@ -150,7 +150,7 @@ const PinnedFace = memo(function PinnedFace({
           <View style={styles.name}>
             {mark === "orbit" ? (
               <LineIcon variant="footnote" size={MARK} mark>
-                <PixelOrbit color={facts.orbit} size={MARK} still={!live} />
+                <PixelOrbit color={facts.orbit} size={MARK} />
               </LineIcon>
             ) : mark === "wait" ? (
               <LineIcon variant="footnote" size={7} mark>

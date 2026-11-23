@@ -460,7 +460,7 @@ describe("git proxy", () => {
     expect((await w.call("beta/other.git/info/refs", { query: "?service=git-upload-pack" })).status).toBe(403);
     expect((await w.call("acme/app.git/info/refs", { query: "?service=git-receive-pack" })).status).toBe(403);
 
-    // An open task in a project that works on beta/other lets it through, until the task is done (ADR 0218 §5).
+    // An open task in a project that works on beta/other lets it through, until the task is done (ADR 0219 §5).
     const tasks = { db: f.db, pubsub: f.pubsub };
     const project = await createIssueProject(tasks, f.owner.id, f.org.id, { name: "Beta" });
     await setProjectRepositories(tasks, f.owner.id, f.org.id, project.id, ["beta/other"]);

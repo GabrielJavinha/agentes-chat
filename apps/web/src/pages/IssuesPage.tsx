@@ -264,7 +264,7 @@ export function IssuesPage() {
             actions={
               (project || (!noIssues && adds)) && (
                 <span className="ac-acts">
-                  {/* A project's repositories and what needs care live on its overview (ADR 0218 §8). */}
+                  {/* A project's repositories and what needs care live on its overview (ADR 0219 §8). */}
                   {project && (
                     <Button asChild>
                       <Link to="/org/$orgId/projects/$projectId" params={{ orgId: org.id, projectId: project.id }}>

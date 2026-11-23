@@ -4385,9 +4385,9 @@ export interface IssueProjectRef {
 /** A project in the projects menu, with the open tasks in it that I see. */
 export interface IssueProject extends IssueProjectRef {
   open: number;
-  /** The GitHub repositories it works on (`owner/name`), its main one first (ADR 0218). */
+  /** The GitHub repositories it works on (`owner/name`), its main one first (ADR 0219). */
   repositories: string[];
-  /** Issues opened in its repositories become its tasks (ADR 0218 §6). */
+  /** Issues opened in its repositories become its tasks (ADR 0219 §6). */
   githubImport: boolean;
 }
 
@@ -7541,7 +7541,6 @@ export interface NoticePrefs {
 /** A tool at the top of the sidebar (`SIDEBAR_ITEMS` in packages/engine/src/sidebar-items.ts). */
 export type SidebarItem =
   | "waiting"
-  | "approvals"
   | "proposals"
   | "threads"
   | "issues"

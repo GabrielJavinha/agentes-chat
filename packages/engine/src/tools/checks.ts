@@ -12,7 +12,7 @@ type ScopedCheck = (input: Record<string, unknown>, ctx: ToolContext, tool: Chec
 const SCOPE_CHECKS: Record<string, ScopedCheck> = {
   // GitHub: only the agent's repositories (ADR 0024), reads included.
   "github:": async (input, ctx, tool) => {
-    // A call that names no repository but will use one of its own (ADR 0218 §4) is checked against that one.
+    // A call that names no repository but will use one of its own (ADR 0219 §4) is checked against that one.
     const fallback = !reposOfGithubCall(input) && tool.defaultRepo ? await tool.defaultRepo(ctx) : null;
     const r = await checkGithubCall(ctx.db, ctx.orgId, ctx.agentId, fallback ? { ...input, repo: fallback } : input);
     if (r.ok) return { ok: true, ...(r.repo ? { data: { repo: r.repo } } : {}) };

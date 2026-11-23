@@ -1,5 +1,5 @@
 /*
- * Projects (ADR 0218 §7): a card per project, three to a row, two under 980 and one on phones, as the dashboards'
+ * Projects (ADR 0219 §7): a card per project, three to a row, two under 980 and one on phones, as the dashboards'
  * list. A name or a repository that is long wraps; nothing is cut.
  */
 .projects__group {
@@ -77,7 +77,7 @@ html:not([data-pointer]) .projects-card:focus-visible {
 }
 
 /*
- * A project's overview (ADR 0218 §8): its groups 24 apart (`.ac-groups`), each a heading 8 over its list. A task's
+ * A project's overview (ADR 0219 §8): its groups 24 apart (`.ac-groups`), each a heading 8 over its list. A task's
  * title takes the row and wraps whole; its stage and note end the row, under it when there's no room.
  */
 .project-overview__group {

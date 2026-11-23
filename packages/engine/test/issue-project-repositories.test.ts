@@ -30,7 +30,7 @@ const rejection = (p: Promise<unknown>) =>
     (e: unknown) => e as Error,
   );
 
-describe("a project's GitHub repositories (ADR 0218)", () => {
+describe("a project's GitHub repositories (ADR 0219)", () => {
   test("an administrator links them in order, cleaned, and the projects list carries them", async () => {
     f = await setup();
     const deps = { db: f.db, pubsub: f.pubsub };
@@ -123,7 +123,7 @@ describe("a project's GitHub repositories (ADR 0218)", () => {
   });
 });
 
-describe("what an agent is told of a task's project's repositories (ADR 0218 §4)", () => {
+describe("what an agent is told of a task's project's repositories (ADR 0219 §4)", () => {
   test("the task's brief names them, its main one first; its open tasks say them too", async () => {
     f = await setup();
     const deps = { db: f.db, pubsub: f.pubsub };

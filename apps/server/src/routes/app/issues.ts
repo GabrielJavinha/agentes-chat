@@ -67,13 +67,13 @@ const ProjectRef = z
   .openapi("IssueProjectRef");
 const ProjectRepositories = z
   .array(z.string())
-  .openapi({ description: "The GitHub repositories it works on (`owner/name`), its main one first (ADR 0218)." });
+  .openapi({ description: "The GitHub repositories it works on (`owner/name`), its main one first (ADR 0219)." });
 const Project = ProjectRef.extend({
   open: z.number().int().openapi({ description: "Open tasks in it that you see." }),
   repositories: ProjectRepositories,
   githubImport: z
     .boolean()
-    .openapi({ description: "Issues opened in its repositories become its tasks (ADR 0218 §6)." }),
+    .openapi({ description: "Issues opened in its repositories become its tasks (ADR 0219 §6)." }),
 }).openapi("IssueProject");
 const ProjectId = z
   .uuid()

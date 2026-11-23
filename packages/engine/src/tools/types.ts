@@ -260,7 +260,7 @@ export interface ToolDefinition {
    */
   checkCall?(input: Record<string, unknown>, ctx: ToolContext): Promise<CallCheck>;
   /**
-   * A GitHub tool that works on a repository nobody named (`git_clone` on a project's main one, ADR 0218 §4): the
+   * A GitHub tool that works on a repository nobody named (`git_clone` on a project's main one, ADR 0219 §4): the
    * repository it will use, so the GitHub check (`tools/checks.ts`) checks that one and never lets the call through
    * unnamed. The tool resolves and checks it again when it runs.
    */

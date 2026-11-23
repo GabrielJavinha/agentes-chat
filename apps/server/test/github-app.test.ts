@@ -554,7 +554,7 @@ test("the server's app is the environment's when set (409), and nobody's on agen
   expect((await seen.json()) as Info).toMatchObject({ setup: null, ownerCreates: false });
 });
 
-test("a project's import (ADR 0218 §6): administrators turn it on, and its repository's issues are queued for it", async () => {
+test("a project's import (ADR 0219 §6): administrators turn it on, and its repository's issues are queued for it", async () => {
   t = await createTestServer({ http, env });
   const owner = browser(t);
   await signUp(owner, "owner@example.com");

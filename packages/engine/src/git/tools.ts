@@ -205,7 +205,7 @@ export function createGitToolSource(deps: GitToolDeps): ToolSource {
             },
             additionalProperties: false,
           },
-          // A run on a task whose project names repositories clones the main one when it names none (ADR 0218 §4).
+          // A run on a task whose project names repositories clones the main one when it names none (ADR 0219 §4).
           defaultRepo: (c) => (c.runId ? runProjectMainRepo(c.db, c.orgId, c.runId) : Promise.resolve(null)),
           async execute(input, c) {
             try {

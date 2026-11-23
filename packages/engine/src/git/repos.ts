@@ -103,7 +103,7 @@ export async function agentOwnRepositoryList(db: Executor, orgId: string, agentI
 }
 
 /**
- * The repositories of the projects in which the agent has an open task (ADR 0218 §5): to do, in progress or in
+ * The repositories of the projects in which the agent has an open task (ADR 0219 §5): to do, in progress or in
  * review, with the agent among its assignees. Closing the task, or taking the agent off it, ends them.
  */
 export async function taskProjectRepositoriesOf(db: Executor, orgId: string, agentId: string): Promise<string[]> {
@@ -127,7 +127,7 @@ export async function taskProjectRepositoriesOf(db: Executor, orgId: string, age
 
 /**
  * What the agent may reach, in order (no permission check: for the proxy, the gateway, its computer and the prompt):
- * its own list, then the repositories of the projects it has an open task in that the list doesn't cover (ADR 0218
+ * its own list, then the repositories of the projects it has an open task in that the list doesn't cover (ADR 0219
  * §5). An empty list is every repository, as before: nothing to add to it.
  */
 export async function agentRepositoryList(db: Executor, orgId: string, agentId: string): Promise<string[]> {
@@ -225,7 +225,7 @@ const inReach = (list: readonly string[], entry: string) => {
 export async function agentMergeRepos(db: Executor, orgId: string, agentId: string): Promise<string[]> {
   const chosen = await chosenMergeRepos(db, orgId, agentId);
   if (chosen.length === 0) return [];
-  // Its own list only: reach through a task's project (ADR 0218 §5) never merges without asking.
+  // Its own list only: reach through a task's project (ADR 0219 §5) never merges without asking.
   const list = await agentOwnRepositoryList(db, orgId, agentId);
   return chosen.filter((entry) => inReach(list, entry));
 }
